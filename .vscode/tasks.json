@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "mbed build",
+            "type": "shell",
+            "command": "mbed",
+            "args": [
+                "compile", "-m", "nucleo_f429zi", "-t", "GCC_ARM", "--flash"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
