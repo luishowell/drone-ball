@@ -10,7 +10,7 @@ int dir=1, level=10;
 
 Serial pc(USBTX, USBRX); // tx, rx
 
-apa102 mystrip(PE_2, PE_6, STRIP_LENGTH);	//sck, mosi
+apa102 mystrip(PE_2, PE_6, PE_5, STRIP_LENGTH);	//sclk, mosi, miso
 
 SDBlockDevice sd(PC_12, PC_11, PC_10, PD_2);
 FATFileSystem fs("sd", &sd);
