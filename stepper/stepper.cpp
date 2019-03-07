@@ -1,7 +1,7 @@
 #include "mbed-os/mbed.h"
 #include "stepper.hpp"
 
-Timer t;
+Timer step_timer;
 
 // Stepper::Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2)
 // : motor_1(motor_pin_1), motor_2(motor_pin_2)
@@ -37,7 +37,7 @@ Stepper::Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2, 
 
     this->setSpeed(100);
 
-    t.start();
+    step_timer.start();
 }
 
 /*
@@ -71,9 +71,9 @@ void Stepper::step(int steps_to_move)
     {       
         // move only if the appropriate delay has passed:
         
-        if (t.read_us() >= this->step_delay)
+        if (step_timer.read_us() >= this->step_delay)
         {
-            //pc.printf("%i\n", t.read_us());
+            //pc.printf("%i\n", step_timer.read_us());
          
             // increment or decrement the step number,
             // depending on direction:
@@ -96,9 +96,9 @@ void Stepper::step(int steps_to_move)
             // decrement the steps left:
             steps_left--;
             // step the motor to step number 0, 1, ..., {3 or 10}
-            t.stop();
-            t.reset();
-            t.start();
+            step_timer.stop();
+            step_timer.reset();
+            step_timer.start();
 
             stepMotor(this->step_number % 4);    
 
