@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">LED Sphere App</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_draw_page">DrawPage</string>
+    <string name="title_activity_sdcard">SDCard</string>
+    <string name="title_activity_image_selector">ImageSelector</string>
+</resources>
