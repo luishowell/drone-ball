@@ -17,6 +17,7 @@ public class ImageSelector extends AppCompatActivity {
     private static final int PICK_IMAGE = 100;
     Uri imageUri;
     ImageView imageView2;
+    float rotateAngle = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +56,17 @@ public class ImageSelector extends AppCompatActivity {
             }
 
         });
+
+        Button button_rotate = (Button) findViewById(R.id.button_rotate);
+        button_rotate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rotateImage();
+            }
+
+        });
+
+
     }
 
     private void openGallery() {
@@ -69,6 +81,11 @@ public class ImageSelector extends AppCompatActivity {
             imageUri = data.getData();
             imageView2.setImageURI(imageUri);
         }
+    }
+
+    private void rotateImage() {
+        rotateAngle = (rotateAngle + 90) % 360;
+        imageView2.setRotation(rotateAngle);
     }
 
 }
