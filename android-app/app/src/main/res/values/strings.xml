@@ -10,6 +10,7 @@
     <string name="save">Save</string>
     <string name="paint">Paint</string>
     <string name="sml">Small</string>
-	<string name="med">Medium</string>
-	<string name="lrg">Large</string>
+    <string name="med">Medium</string>
+    <string name="lrg">Large</string>
+    <string name="title_activity_settings_page">SettingsPage</string>
 </resources>

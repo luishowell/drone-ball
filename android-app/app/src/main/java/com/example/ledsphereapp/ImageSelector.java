@@ -21,6 +21,7 @@ import android.widget.Toast;
 import android.view.Menu;
 import android.view.MenuItem;
 
+
 import java.io.File;
 
 public class ImageSelector extends AppCompatActivity {
@@ -28,12 +29,9 @@ public class ImageSelector extends AppCompatActivity {
     private static final int PICK_IMAGE = 100;
     Uri imageUri;
     ImageView imageView2;
-    EditText editImHeight;
-    EditText editImWidth;
+
     float rotateAngle = 0;
 
-    int image_width = 200;
-    int image_height = 144;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,40 +50,10 @@ public class ImageSelector extends AppCompatActivity {
         });
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        //init global variables
+        final GlobalVariables globalVars = (GlobalVariables)getApplication();
+
         imageView2 = (ImageView) findViewById(R.id.imageView2);
-
-        editImWidth = (EditText) findViewById(R.id.editImWidth);
-        editImWidth.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-
-                boolean handled = false;
-                if (actionId == EditorInfo.IME_ACTION_NEXT) {
-                    //store the value in the relevant int value
-                    String image_width_str = v.getText().toString();
-                    image_width = Integer.parseInt(image_width_str);
-                }
-                return handled;
-            }
-        });
-
-
-        editImHeight = (EditText) findViewById(R.id.editImHeight);
-        editImHeight.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-
-                boolean handled = false;
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    //store the value in the relevant int value
-                    String image_height_str = v.getText().toString();
-                    image_height = Integer.parseInt(image_height_str);
-                }
-                return handled;
-            }
-        });
-
-
 
 
         Button gallery_button = (Button) findViewById(R.id.gallery_button);
@@ -132,10 +100,7 @@ public class ImageSelector extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         //if(resultCode == RESULT_OK && requestCode == PICK_IMAGE){
         if(requestCode == Crop.REQUEST_PICK && resultCode == RESULT_OK){
-            //imageUri = data.getData();
             beginCrop(data.getData());
-            //imageView2.setImageURI(imageUri);
-            //imageView2.setImageURI(Crop.getOutput(data));
         } else if (requestCode == Crop.REQUEST_CROP){
             handleCrop(resultCode, data);
         } else if(resultCode == RESULT_OK && requestCode == PICK_IMAGE){
@@ -146,7 +111,8 @@ public class ImageSelector extends AppCompatActivity {
 
     private void beginCrop(Uri source){
         Uri outputUri = Uri.fromFile(new File(getCacheDir(), "cropped"));
-        new Crop(source).output(outputUri).withFixedSize(image_width,image_height).start(this);
+        final GlobalVariables globalVars = (GlobalVariables)getApplication();
+        new Crop(source).output(outputUri).withFixedSize(globalVars.imageWidth,globalVars.imageHeight).start(this);
     }
 
     private void handleCrop(int resultCode, Intent result) {

@@ -12,8 +12,11 @@ import android.content.Intent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,15 +34,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        GlobalVariables globalVars = (GlobalVariables)getApplication();
+
         Button button_draw = (Button) findViewById(R.id.button_draw);
         button_draw.setOnClickListener(new View.OnClickListener() {
 
             @Override
-
             public void onClick(View v) {
-
                 goToDrawWindow();
-
             }
 
         });
@@ -48,11 +50,8 @@ public class MainActivity extends AppCompatActivity {
         button_sd.setOnClickListener(new View.OnClickListener() {
 
             @Override
-
             public void onClick(View v) {
-
                 goToSDWindow();
-
             }
 
         });
@@ -61,11 +60,18 @@ public class MainActivity extends AppCompatActivity {
         button_photo.setOnClickListener(new View.OnClickListener() {
 
             @Override
-
             public void onClick(View v) {
-
                 goToImageWindow();
+            }
 
+        });
+
+        Button button_settings = (Button) findViewById(R.id.button_settings);
+        button_settings.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                goToSettingsWindow();
             }
 
         });
@@ -94,26 +100,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void goToDrawWindow() {
-
         Intent intent = new Intent(this, DrawPage.class);
-
         startActivity(intent);
-
     }
 
     private void goToSDWindow() {
-
         Intent intent = new Intent(this, SDCard.class);
-
         startActivity(intent);
-
     }
 
     private void goToImageWindow() {
-
         Intent intent = new Intent(this, ImageSelector.class);
-
         startActivity(intent);
+    }
 
+    private void goToSettingsWindow() {
+        Intent intent = new Intent(this, SettingsPage.class);
+        startActivity(intent);
     }
 }
