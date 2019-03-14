@@ -91,13 +91,13 @@ int main()
 
 	while(1)
 	{
-		if (display_counter[STRIP_NUMBER]==DISPLAY_STEPS)
+		if (display_counter[0]==DISPLAY_STEPS)
 		{
 			display_counter[0]=0;
 		}
 		for (int i=1; i<STRIP_NUMBER; i++)
 		{
-			display_counter[i] = display_counter[0] + ((DISPLAY_STEPS/4)*i);
+			display_counter[i] = display_counter[0] + ((DISPLAY_STEPS/STRIP_NUMBER)*i);
 			if (display_counter[i]>=DISPLAY_STEPS)
 			{
 				display_counter[i] = display_counter[i] - DISPLAY_STEPS;
