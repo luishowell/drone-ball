@@ -111,10 +111,6 @@ void Stepper::step(int steps_to_move)
 */
 void Stepper::stepMotor(int thisStep)
 {
-    DigitalOut myled1(LED1);
-    DigitalOut myled2(LED2);
-    DigitalOut myled3(LED3);
-    DigitalOut myled4(LED4);
     // if (this->pin_count == 2)
     // {
     //     switch (thisStep)
@@ -146,40 +142,24 @@ void Stepper::stepMotor(int thisStep)
             this->motor_2 = 0;
             this->motor_3 = 1;
             this->motor_4 = 0;
-            myled1 = 1;
-            myled2 = 0;
-            myled3 = 1;
-            myled4 = 0;
             break;
         case 1: // 0110
             this->motor_1 = 0;
             this->motor_2 = 1;
             this->motor_3 = 1;
             this->motor_4 = 0;
-            myled1 = 0;
-            myled2 = 1;
-            myled3 = 1;
-            myled4 = 0;
             break;
         case 2: //0101
             this->motor_1 = 0;
             this->motor_2 = 1;
             this->motor_3 = 0;
             this->motor_4 = 1;
-            myled1 = 0;
-            myled2 = 1;
-            myled3 = 0;
-            myled4 = 1;
             break;
         case 3: //1001
             this->motor_1 = 1;
             this->motor_2 = 0;
             this->motor_3 = 0;
             this->motor_4 = 1;
-            myled1 = 1;
-            myled2 = 0;
-            myled3 = 0;
-            myled4 = 1;
             break;
         }
     }
