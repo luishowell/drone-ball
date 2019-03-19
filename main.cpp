@@ -2,37 +2,27 @@
 #include "FATFileSystem.h"	//SD card
 #include "SDBlockDevice.h"	//SD card
 #include "bitmap_image.hpp"	//bitmap lib
-#include "apa102.h"	//LED strip driver#
+#include "apa102.h"	//LED strip driver
 #include "stepper.hpp"
+
+#include <string>
 
 #define STRIP_LENGTH 144
 #define DISPLAY_STEPS 200
 #define STRIP_NUMBER 4
 
-int dir=1, level=10;
-unsigned int freq = 32000000;
-
 Serial pc(USBTX, USBRX); // tx, rx
 
-Timer t;
+SDBlockDevice sd(PC_12, PC_11, PC_10, PD_2); //SPI3
+FATFileSystem fs("sd", &sd);
 
 apa102 strip_1(PA_5, PA_7, PA_6, STRIP_LENGTH);	//sclk, mosi, miso SPI1
 apa102 strip_2(PB_13, PB_15, PC_2, STRIP_LENGTH);	//sclk, mosi, miso SPI2
 apa102 strip_3(PE_2, PE_6, PE_5, STRIP_LENGTH);	//sclk, mosi, miso SPI4
 apa102 strip_4(PF_7, PF_9, PF_8, STRIP_LENGTH);	//sclk, mosi, miso SPI5
 
-unsigned int strip_1_array[STRIP_LENGTH];
-unsigned int strip_2_array[STRIP_LENGTH];
-unsigned int strip_3_array[STRIP_LENGTH];
-unsigned int strip_4_array[STRIP_LENGTH];
 
-SDBlockDevice sd(PC_12, PC_11, PC_10, PD_2); //SPI3
-FATFileSystem fs("sd", &sd);
-
-bitmap_image image("/sd/input2.bmp");
-
-
-void convert_pixels(unsigned int *input_array, int col)
+void convert_pixels(bitmap_image& image, unsigned int *input_array, int col)
 {
 	rgb_t colour;
 	unsigned int pixel_rgb;
@@ -40,7 +30,7 @@ void convert_pixels(unsigned int *input_array, int col)
 	int green;
 	int blue;
 
-	for (unsigned int y = 0; y < STRIP_LENGTH; ++y)
+	for (int y = 0; y < STRIP_LENGTH; y++)
 	{
 		image.get_pixel(col, y, colour);
 
@@ -54,6 +44,12 @@ void convert_pixels(unsigned int *input_array, int col)
 
 		input_array[y] = pixel_rgb;				
 	}	
+}
+
+void change_image(bitmap_image& image, string filename)
+{
+    image.file_name_ = filename;
+    image.load_bitmap();
 }
 
 void setup_strips(int level, unsigned int freq)
@@ -71,23 +67,30 @@ void setup_strips(int level, unsigned int freq)
 
 int main()
 {
-	pc.printf("\nOpening input2.bmp\n");	
-	
-	if (!image)
-	{
-		pc.printf("Failed to open image\n");		
-		return 1;
-	}
-	else{
-		pc.printf("Image open success\n");
-	}
-
+	int level=10;
+	unsigned int freq = 32000000;
 	setup_strips(level, freq);
 
     Stepper stepper_motor(200, PD_4, PD_5, PD_6, PD_7);
     stepper_motor.setSpeed(350);  //rpm
+
+	pc.printf("\nOpening default image\n");
+	bitmap_image image("/sd/default.bmp");
+	
+	if (!image)
+	{
+		//pc.printf("Failed to open image\n");		
+		return 1;
+	}
+	else{
+		pc.printf("Default image open success\n");
+	}
 	
 	int display_counter[STRIP_NUMBER] = {0,0,0,0};
+	unsigned int strip_1_array[STRIP_LENGTH];
+	unsigned int strip_2_array[STRIP_LENGTH];
+	unsigned int strip_3_array[STRIP_LENGTH];
+	unsigned int strip_4_array[STRIP_LENGTH];
 
 	while(1)
 	{
@@ -104,16 +107,16 @@ int main()
 			}
 		}
 
-		convert_pixels(strip_1_array, display_counter[0]);
+		convert_pixels(image, strip_1_array, display_counter[0]);
 		strip_1.post(strip_1_array);
-		convert_pixels(strip_2_array, display_counter[1]);
+		convert_pixels(image, strip_2_array, display_counter[1]);
 		strip_2.post(strip_2_array);
-		convert_pixels(strip_3_array, display_counter[2]);
+		convert_pixels(image, strip_3_array, display_counter[2]);
 		strip_3.post(strip_3_array);
-		convert_pixels(strip_4_array, display_counter[3]);
+		convert_pixels(image, strip_4_array, display_counter[3]);
 		strip_4.post(strip_4_array);
 
-		stepper_motor.step(1);
+		stepper_motor.step(-1);
 		display_counter[0]++;
 	}
 

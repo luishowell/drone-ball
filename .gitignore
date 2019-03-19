@@ -4,3 +4,4 @@ mbed_settings.py
 mbed_settings.pyc
 *.mbed
 *.lib
+compile_commands.json
