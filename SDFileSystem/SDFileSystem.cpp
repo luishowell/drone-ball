@@ -35,6 +35,37 @@ SDFileSystem::SDFileSystem(sdPins_t pins, Serial* pc)
 
 }
 
+//clean directory
+void SDFileSystem::cleanDirectory(const char * path)
+{
+    //open the directory
+	DIR* dir = opendir(path);
+	errno_error(dir);
+
+    if(this->pcConnected == true){
+        this->m_pc->printf("Cleaning directory:  %s\n", path);
+    }
+
+    struct dirent* de;
+    std::string sdir;
+
+    //loop through the directory
+	while((de = readdir(dir)) != NULL){
+        sdir = &(de->d_name)[0];
+
+        //if ._ is contained, remove it
+        if(sdir.find("._") != std::string::npos){ 
+            sdir = std::string(path) + "/" + &(de->d_name)[0];
+            if(this->pcConnected == true){
+                this->m_pc->printf("Deleting file:  %s\n", &(de->d_name)[0]);
+            }
+            remove(sdir.c_str());
+        }
+	}
+    err = closedir(dir);
+	return_error(err);
+}
+
 
 //get the given directory
 void SDFileSystem::getDirectory(const char * path)
@@ -42,20 +73,49 @@ void SDFileSystem::getDirectory(const char * path)
     if(this->pcConnected == true){
         this->m_pc->printf("Opening specified directory.");
     }
+
+    //clean the directory 
+    this->cleanDirectory(path);
+
+    //open the directory
 	DIR* dir = opendir(path);
 	errno_error(dir);
+
+    //create the filestructure files
+    FILE* fd = fopen("/sd/files.txt", "w");
+	errno_error(fd);
+    FILE* fdbmp = fopen("/sd/bmpFiles.txt", "w");
+	errno_error(fdbmp);
 
 	struct dirent* de;
     if(this->pcConnected == true){
 	    this->m_pc->printf("Printing all filenames:\n");
     }
+
+    //interim variables
+    unsigned int i = 0;
+    std::string sdir;
+
+    //loop through the directory
 	while((de = readdir(dir)) != NULL){
         if(this->pcConnected == true){
 		    this->m_pc->printf("  %s\n", &(de->d_name)[0]);
         }
+        fprintf(fd, "%d\t%s\n", i, &(de->d_name)[0]);
+        sdir = &(de->d_name)[0];
+        if(sdir.find(".bmp") != std::string::npos){   
+            fprintf(fdbmp, "%d\t%s\n", i, &(de->d_name)[0]);
+            this->m_pc->printf("BMP:  %s\n", &(de->d_name)[0]);
+        }
+        i++;
 	}
+
+    //close the files
+    fclose(fd);
+    fclose(fdbmp);
+
     if(this->pcConnected == true){
-	    this->m_pc->printf("Closeing specified directory. ");
+	    this->m_pc->printf("Closing specified directory. ");
     }
 	err = closedir(dir);
 	return_error(err);
@@ -63,7 +123,7 @@ void SDFileSystem::getDirectory(const char * path)
 }
 
 //change the bitmap to given file
-void SDFileSystem::changeImage(bitmap_image& image, string filename)
+void SDFileSystem::changeImage(bitmap_image& image, std::string filename)
 {
     image.file_name_ = filename;
     image.load_bitmap();

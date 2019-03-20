@@ -69,7 +69,7 @@ class SDFileSystem
          * @param image The bitmap image object
          * @param filename The name of the file that is to be changed to
          */
-        void changeImage(bitmap_image& image, string filename);
+        void changeImage(bitmap_image& image, std::string filename);
 
 
     private:
@@ -84,6 +84,9 @@ class SDFileSystem
         //the internal functions needed for error handling
         void errno_error(void* ret_val);
         void return_error(int ret_val);
+
+        //function to remove ._ files from directory
+        void cleanDirectory(const char * path);
 
         //pc print if needed
         Serial* m_pc;
