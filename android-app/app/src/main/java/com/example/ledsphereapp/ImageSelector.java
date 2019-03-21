@@ -1,5 +1,9 @@
 package com.example.ledsphereapp;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -61,6 +65,7 @@ public class ImageSelector extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 openGallery();
+                scaleImage();
             }
 
         });
@@ -112,7 +117,8 @@ public class ImageSelector extends AppCompatActivity {
     private void beginCrop(Uri source){
         Uri outputUri = Uri.fromFile(new File(getCacheDir(), "cropped"));
         final GlobalVariables globalVars = (GlobalVariables)getApplication();
-        new Crop(source).output(outputUri).withFixedSize(globalVars.imageWidth,globalVars.imageHeight).start(this);
+        new Crop(source).output(outputUri).withAspect(globalVars.imageWidth,globalVars.imageHeight).start(this);
+                //withFixedSize(globalVars.imageWidth,globalVars.imageHeight).start(this);
     }
 
     private void handleCrop(int resultCode, Intent result) {
@@ -126,6 +132,42 @@ public class ImageSelector extends AppCompatActivity {
     private void rotateImage() {
         rotateAngle = (rotateAngle + 90) % 360;
         imageView2.setRotation(rotateAngle);
+    }
+
+    private void scaleImage() {
+
+        Bitmap bitmap = getBitmapFromView(imageView2);
+
+        //find global variables
+        final GlobalVariables globalVars = (GlobalVariables)getApplication();
+
+        //scale the bitmap
+        bitmap = Bitmap.createScaledBitmap(bitmap, globalVars.imageWidth, globalVars.imageHeight, false);
+
+        //output it to image view
+        imageView2.setImageBitmap(bitmap);
+
+    }
+
+    //create bitmap from view and returns it
+    private Bitmap getBitmapFromView(View view) {
+        //Define a bitmap with the same size as the view
+        Bitmap returnedBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),Bitmap.Config.ARGB_8888);
+        //Bind a canvas to it
+        Canvas canvas = new Canvas(returnedBitmap);
+        //Get the view's background
+        Drawable bgDrawable =view.getBackground();
+        if (bgDrawable!=null) {
+            //has background drawable, then draw it on the canvas
+            bgDrawable.draw(canvas);
+        }   else{
+            //does not have background drawable, then draw white background on the canvas
+            canvas.drawColor(Color.WHITE);
+        }
+        // draw the view on the canvas
+        view.draw(canvas);
+        //return the bitmap
+        return returnedBitmap;
     }
 
 }

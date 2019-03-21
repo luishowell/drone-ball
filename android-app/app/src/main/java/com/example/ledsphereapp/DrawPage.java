@@ -1,10 +1,21 @@
 package com.example.ledsphereapp;
 
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Menu;
 import android.content.Intent;
@@ -13,6 +24,9 @@ import com.example.ledsphereapp.DrawingView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.UUID;
 
 import android.os.Bundle;
@@ -26,7 +40,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
+
 
 
 public class DrawPage extends Activity implements OnClickListener{
@@ -37,6 +53,9 @@ public class DrawPage extends Activity implements OnClickListener{
     private ImageButton currPaint, drawBtn, eraseBtn, newBtn, saveBtn;
     //sizes
     private float smallBrush, mediumBrush, largeBrush;
+
+    //text show
+    ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +76,16 @@ public class DrawPage extends Activity implements OnClickListener{
 
         //get drawing view
         drawView = (DrawingView)findViewById(R.id.drawing);
+
+        //find global variables
+        final GlobalVariables globalVars = (GlobalVariables)getApplication();
+
+        //set drawview size
+        int scalingFactor = 3;
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(scalingFactor * globalVars.imageWidth, scalingFactor* globalVars.imageHeight);
+        //layoutParams.weight = 1.0f;
+        layoutParams.gravity = Gravity.CENTER;
+        drawView.setLayoutParams(layoutParams);
 
         //get the palette and first colour button
         LinearLayout paintLayout = (LinearLayout)findViewById(R.id.paint_colors);
@@ -86,6 +115,9 @@ public class DrawPage extends Activity implements OnClickListener{
         //save button
         saveBtn = (ImageButton)findViewById(R.id.save_btn);
         saveBtn.setOnClickListener(this);
+
+        //for text display i think
+        pd = new ProgressDialog(DrawPage.this);
 
     }
 
@@ -207,6 +239,47 @@ public class DrawPage extends Activity implements OnClickListener{
         }
         else if(view.getId()==R.id.save_btn){
             //save drawing
+
+            pd.setMessage("saving your image");
+            pd.show();
+            File file = saveBitMap(DrawPage.this, findViewById(R.id.drawing));
+            if (file != null) {
+                pd.cancel();
+                Log.i("TAG", "Drawing saved to the gallery!");
+            } else {
+                pd.cancel();
+                Log.i("TAG", "Oops! Image could not be saved.");
+            }
+
+            /*
+        try{
+            LinearLayout drawView = findViewById(R.id.drawing);
+            drawView.setDrawingCacheEnabled(true);
+            Bitmap bitmap = drawView.getDrawingCache();
+            File file,f = null;
+            if (Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED))
+                {
+                    file =new File(android.os.Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),"TTImages_cache");
+                    if(!file.exists())
+                    {
+                        file.mkdirs();
+
+                    }
+                    f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)+File.separator+ "filename"+".png");
+                }
+                f.createNewFile();
+                FileOutputStream ostream = new FileOutputStream(f);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 10, ostream);
+                ostream.close();
+
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }*/
+        //}
+
+
+            /*
             AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
             saveDialog.setTitle("Save drawing");
             saveDialog.setMessage("Save drawing to device Gallery?");
@@ -217,7 +290,7 @@ public class DrawPage extends Activity implements OnClickListener{
                     //attempt to save
                     String imgSaved = MediaStore.Images.Media.insertImage(
                             getContentResolver(), drawView.getDrawingCache(),
-                            UUID.randomUUID().toString()+".png", "drawing");
+                            UUID.randomUUID().toString()+".jpg", "drawing");
                     //feedback
                     if(imgSaved!=null){
                         Toast savedToast = Toast.makeText(getApplicationContext(),
@@ -238,6 +311,75 @@ public class DrawPage extends Activity implements OnClickListener{
                 }
             });
             saveDialog.show();
+            */
+        }
+    }
+
+
+    private File saveBitMap(Context context, View drawView){
+        File pictureFileDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),"Logicchip");
+        if (!pictureFileDir.exists()) {
+            boolean isDirectoryCreated = pictureFileDir.mkdirs();
+            if(!isDirectoryCreated)
+                Log.i("TAG", "Can't create directory to save the image");
+            return null;
+        }
+        String filename = pictureFileDir.getPath() +File.separator+ System.currentTimeMillis()+".jpg";
+        File pictureFile = new File(filename);
+        Bitmap bitmap =getBitmapFromView(drawView);
+
+        //find global variables
+        final GlobalVariables globalVars = (GlobalVariables)getApplication();
+
+        //scale the bitmap
+        bitmap = Bitmap.createScaledBitmap(bitmap, globalVars.imageWidth, globalVars.imageHeight, false);
+
+        try {
+            pictureFile.createNewFile();
+            FileOutputStream oStream = new FileOutputStream(pictureFile);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, oStream);
+            oStream.flush();
+            oStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.i("TAG", "There was an issue saving the image.");
+        }
+        scanGallery( context,pictureFile.getAbsolutePath());
+        return pictureFile;
+    }
+
+    //create bitmap from view and returns it
+    private Bitmap getBitmapFromView(View view) {
+        //Define a bitmap with the same size as the view
+        Bitmap returnedBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),Bitmap.Config.ARGB_8888);
+        //Bind a canvas to it
+        Canvas canvas = new Canvas(returnedBitmap);
+        //Get the view's background
+        Drawable bgDrawable =view.getBackground();
+        if (bgDrawable!=null) {
+            //has background drawable, then draw it on the canvas
+            bgDrawable.draw(canvas);
+        }   else{
+            //does not have background drawable, then draw white background on the canvas
+            canvas.drawColor(Color.WHITE);
+        }
+        // draw the view on the canvas
+        view.draw(canvas);
+        //return the bitmap
+        return returnedBitmap;
+    }
+
+
+    // used for scanning gallery
+    private void scanGallery(Context cntx, String path) {
+        try {
+            MediaScannerConnection.scanFile(cntx, new String[]{path}, null, new MediaScannerConnection.OnScanCompletedListener() {
+                public void onScanCompleted(String path, Uri uri) {
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.i("TAG", "There was an issue scanning gallery.");
         }
     }
 

@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.ledsphereapp">
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <application
         android:name=".GlobalVariables"
         android:allowBackup="true"
@@ -59,5 +62,4 @@
         <activity android:name="com.soundcloud.android.crop.CropImageActivity" />
         <activity android:name=".DrawingView" />
     </application>
-
 </manifest>
