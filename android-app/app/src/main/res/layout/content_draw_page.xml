@@ -55,7 +55,7 @@
 		android:layout_marginRight="5dp"
 		android:layout_marginBottom="3dp"
 		android:layout_weight="1"
-		android:background="#FFFFFFFF"
+		android:background="@android:color/background_dark"
 		android:foregroundGravity="center_horizontal" />
 
 	<!-- Color Palette -->

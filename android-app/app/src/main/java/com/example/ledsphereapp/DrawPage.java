@@ -14,6 +14,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -21,6 +22,8 @@ import android.view.Menu;
 import android.content.Intent;
 import android.widget.Button;
 import com.example.ledsphereapp.DrawingView;
+
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
@@ -56,6 +59,9 @@ public class DrawPage extends Activity implements OnClickListener{
 
     //text show
     ProgressDialog pd;
+
+    //filename variable
+    private String m_Filename = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -239,59 +245,10 @@ public class DrawPage extends Activity implements OnClickListener{
         }
         else if(view.getId()==R.id.save_btn){
             //save drawing
-
-            pd.setMessage("saving your image");
-            pd.show();
-            File file = saveBitMap(DrawPage.this, findViewById(R.id.drawing));
-            if (file != null) {
-                pd.cancel();
-                Log.i("TAG", "Drawing saved to the gallery!");
-            } else {
-                pd.cancel();
-                Log.i("TAG", "Oops! Image could not be saved.");
-            }
-
-            /*
-        try{
-            LinearLayout drawView = findViewById(R.id.drawing);
-            drawView.setDrawingCacheEnabled(true);
-            Bitmap bitmap = drawView.getDrawingCache();
-            File file,f = null;
-            if (Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED))
-                {
-                    file =new File(android.os.Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),"TTImages_cache");
-                    if(!file.exists())
-                    {
-                        file.mkdirs();
-
-                    }
-                    f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)+File.separator+ "filename"+".png");
-                }
-                f.createNewFile();
-                FileOutputStream ostream = new FileOutputStream(f);
-                bitmap.compress(Bitmap.CompressFormat.PNG, 10, ostream);
-                ostream.close();
-
-            }
-            catch (Exception e){
-                e.printStackTrace();
-            }*/
-        //}
+            getFilename();
 
 
             /*
-            AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
-            saveDialog.setTitle("Save drawing");
-            saveDialog.setMessage("Save drawing to device Gallery?");
-            saveDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog, int which){
-                    //save drawing
-                    drawView.setDrawingCacheEnabled(true);
-                    //attempt to save
-                    String imgSaved = MediaStore.Images.Media.insertImage(
-                            getContentResolver(), drawView.getDrawingCache(),
-                            UUID.randomUUID().toString()+".jpg", "drawing");
-                    //feedback
                     if(imgSaved!=null){
                         Toast savedToast = Toast.makeText(getApplicationContext(),
                                 "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
@@ -324,7 +281,7 @@ public class DrawPage extends Activity implements OnClickListener{
                 Log.i("TAG", "Can't create directory to save the image");
             return null;
         }
-        String filename = pictureFileDir.getPath() +File.separator+ System.currentTimeMillis()+".jpg";
+        String filename = pictureFileDir.getPath() +File.separator+ m_Filename + ".jpg";//System.currentTimeMillis()+".jpg";
         File pictureFile = new File(filename);
         Bitmap bitmap =getBitmapFromView(drawView);
 
@@ -361,7 +318,7 @@ public class DrawPage extends Activity implements OnClickListener{
             bgDrawable.draw(canvas);
         }   else{
             //does not have background drawable, then draw white background on the canvas
-            canvas.drawColor(Color.WHITE);
+            canvas.drawColor(Color.BLACK);
         }
         // draw the view on the canvas
         view.draw(canvas);
@@ -381,6 +338,56 @@ public class DrawPage extends Activity implements OnClickListener{
             e.printStackTrace();
             Log.i("TAG", "There was an issue scanning gallery.");
         }
+    }
+
+    private void saveDrawing() {
+
+        pd.setMessage("saving your image");
+        pd.show();
+        File file = saveBitMap(DrawPage.this, findViewById(R.id.drawing));
+        if (file != null) {
+            pd.cancel();
+            Log.i("TAG", "Drawing saved to the gallery!");
+            Toast savedToast = Toast.makeText(getApplicationContext(),
+                    "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
+            savedToast.show();
+        } else {
+            pd.cancel();
+            Log.i("TAG", "Oops! Image could not be saved.");
+            Toast unsavedToast = Toast.makeText(getApplicationContext(),
+                    "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
+            unsavedToast.show();
+        }
+
+    }
+
+    private void getFilename() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Filename:");
+
+        // Set up the input
+        final EditText input = new EditText(this);
+        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+        input.setInputType(InputType.TYPE_CLASS_TEXT);//| InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        builder.setView(input);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                m_Filename = input.getText().toString();
+                saveDrawing();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 
 }
