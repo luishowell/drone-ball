@@ -13,4 +13,5 @@
     <string name="med">Medium</string>
     <string name="lrg">Large</string>
     <string name="title_activity_settings_page">SettingsPage</string>
+    <string name="title_activity_select_image">SelectImage</string>
 </resources>
