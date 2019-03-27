@@ -10,13 +10,23 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.content.Intent;
 import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Button;
 import android.widget.Toast;
 
+import static java.lang.Boolean.TRUE;
+
 public class MainActivity extends AppCompatActivity {
 
+    private Boolean switchState;
 
+    private Switch masterSwitch;
+    private Button button_draw;
+    private Button button_sd;
+    private Button button_photo;
+    private Button button_settings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +46,8 @@ public class MainActivity extends AppCompatActivity {
 
         GlobalVariables globalVars = (GlobalVariables)getApplication();
 
-        Button button_draw = (Button) findViewById(R.id.button_draw);
+        //setup the button that takes you to the draw image window
+        button_draw = (Button) findViewById(R.id.button_draw);
         button_draw.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -46,7 +57,8 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        Button button_sd = (Button) findViewById(R.id.button_sd);
+        //setup the button that takes you to the sd card page
+        button_sd = (Button) findViewById(R.id.button_sd);
         button_sd.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -56,7 +68,8 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        Button button_photo = (Button) findViewById(R.id.button_photo);
+        //setup the button that takes you to photo selector page
+        button_photo = (Button) findViewById(R.id.button_photo);
         button_photo.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -66,7 +79,8 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        Button button_settings = (Button) findViewById(R.id.button_settings);
+        //setup the button that takes you to settings page
+        button_settings = (Button) findViewById(R.id.button_settings);
         button_settings.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -75,6 +89,15 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+
+        //setup the master toggle switch
+        masterSwitch = (Switch) findViewById(R.id.MasterControl);
+        masterSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                switchEvent();
+            }
+        });
+        
     }
 
     @Override
@@ -117,5 +140,22 @@ public class MainActivity extends AppCompatActivity {
     private void goToSettingsWindow() {
         Intent intent = new Intent(this, SettingsPage.class);
         startActivity(intent);
+    }
+
+    private void switchEvent() {
+        // check current state of a Switch (true or false).
+        switchState = masterSwitch.isChecked();
+
+        if(switchState == TRUE) {
+            //send a notification to the sphere
+            Toast.makeText(getApplicationContext(),
+                    "Switch on" ,
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            //send a notification to the sphere
+            Toast.makeText(getApplicationContext(),
+                    "Switch Off" ,
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 }
