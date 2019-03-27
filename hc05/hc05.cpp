@@ -31,3 +31,13 @@ hc05::hc05(PinName tx, PinName rx, Serial* pc)
     this->pcConnected = true;
 
 }
+
+//get the character
+char hc05::readCharacter()
+{
+    //get the character from the serial port
+    //TODO: replace with bluetooth thing
+    char val = m_pc->getc();
+
+    return val;
+}

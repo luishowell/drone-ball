@@ -37,6 +37,14 @@ class hc05
         hc05(PinName tx, PinName rx, Serial* pc);
 
 
+        /**
+         * @brief Function to retrieve the received character
+         * 
+         * @return Character that has been read
+         */
+        char readCharacter();
+
+
     private:
 
         //bluetooth object
