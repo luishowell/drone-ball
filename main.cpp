@@ -72,7 +72,8 @@ int main()
 	setup_strips(level, freq);
 
     Stepper stepper_motor(200, PD_4, PD_5, PD_6, PD_7);
-    stepper_motor.setSpeed(350);  //rpm
+    //stepper_motor.setSpeed(350);  //rpm
+	stepper_motor.ramp_speed(0, 350);
 
 	pc.printf("\nOpening default image\n");
 	bitmap_image image("/sd/default.bmp");

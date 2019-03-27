@@ -35,7 +35,7 @@ Stepper::Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2, 
     // pin_count is used by the stepMotor() method:
     this->pin_count = 4;
 
-    this->setSpeed(100);
+    this->setSpeed(1);
 
     step_timer.start();
 }
@@ -45,7 +45,39 @@ Stepper::Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2, 
 */
 void Stepper::setSpeed(long whatSpeed)
 {
+    if (whatSpeed<1)
+    {
+        whatSpeed = 1;
+    }
     this->step_delay = 60L * 1000L * 1000L / this->number_of_steps / whatSpeed;
+}
+
+unsigned long Stepper::calc_step_delay(long whatSpeed)
+{
+    return 60L * 1000L * 1000L / this->number_of_steps / whatSpeed;
+}
+
+void Stepper::ramp_speed(int start_speed, int end_speed, float ramp_time, int speed_steps)
+{
+    int speed_inc = (end_speed-start_speed)/speed_steps;
+    unsigned long inc_time = static_cast<unsigned long>((ramp_time*1000*1000)/speed_steps); //in us
+    int new_speed = start_speed;
+    int num_steps = 0;
+
+    for (int i=0; i<speed_steps; i++)
+    {
+        new_speed = new_speed + speed_inc;
+        num_steps = inc_time/calc_step_delay(new_speed);
+        if (num_steps<1)
+        {
+            num_steps = 1;
+        }
+        this->setSpeed(new_speed);
+        this->step(-num_steps);
+    }
+
+    this->setSpeed(end_speed);
+    this->step(-this->number_of_steps);
 }
 
 /*
