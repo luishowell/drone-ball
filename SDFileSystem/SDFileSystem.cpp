@@ -156,3 +156,15 @@ void SDFileSystem::errno_error(void* ret_val)
         this->m_pc->printf(" done.\n");
     }
 }
+
+//get a list of the bmp files in a given directory
+FILE *SDFileSystem::getBmpFileList(const char * path)//, FILE *bmpFile)
+{
+    //create the list files for the directory
+    this->getDirectory(path);
+
+    //return the file list
+    this->m_bmpFiles = fopen("/sd/bmpFiles.txt", "r");
+    FILE *bmpFile = this->m_bmpFiles;
+    return bmpFile;
+}

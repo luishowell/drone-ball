@@ -71,6 +71,15 @@ class SDFileSystem
          */
         void changeImage(bitmap_image& image, std::string filename);
 
+        
+        /**
+         * @brief getBmpFileList Function to get a list of bmp files in a given file.
+         * 
+         * @param path Path in which the bmp files are housed
+         * @return The file containing the list
+         */
+        FILE *getBmpFileList(const char * path);
+
 
     private:
 
@@ -94,6 +103,9 @@ class SDFileSystem
         //util values
         int err;
         bool pcConnected;
+
+        //file to store bmp files list?
+        FILE *m_bmpFiles;
 
 
 };
