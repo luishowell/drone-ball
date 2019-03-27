@@ -37,7 +37,22 @@ char hc05::readCharacter()
 {
     //get the character from the serial port
     //TODO: replace with bluetooth thing
-    char val = m_pc->getc();
+    char val = this->m_pc->getc();
 
     return val;
+}
+
+
+//send a file
+void hc05::sendFile(FILE *fSend)
+{
+    this->m_pc->printf("Sending file over bluetooth\n");
+    //send the file
+    //TODO replace to send over bt
+    char buff[1] = {0};
+	while (!feof(fSend)){
+		int size = fread(&buff[0], 1, 1, fSend);
+        this->m_pc->printf("%c",buff[0]);
+	}
+
 }

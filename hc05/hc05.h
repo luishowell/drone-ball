@@ -44,6 +44,15 @@ class hc05
          */
         char readCharacter();
 
+        /**
+         * @brief Function to send a file over bluetooth
+         * 
+         * @param fSend File that is to be sent
+         */
+        void sendFile(FILE *fSend);
+
+        
+
 
     private:
 
