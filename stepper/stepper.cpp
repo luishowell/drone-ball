@@ -19,8 +19,8 @@ Timer step_timer;
 *   constructor for four-pin version
 *   Sets which wires should control the motor.
 */
-Stepper::Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2, PinName motor_pin_3, PinName motor_pin_4)
-: motor_1(motor_pin_1), motor_2(motor_pin_2), motor_3(motor_pin_3), motor_4(motor_pin_4)
+Stepper::Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2, PinName motor_pin_3, PinName motor_pin_4, PinName motor_en_pin_1, PinName motor_en_pin_2)
+: motor_1(motor_pin_1), motor_2(motor_pin_2), motor_3(motor_pin_3), motor_4(motor_pin_4), motor_en_1(motor_en_pin_1), motor_en_2(motor_en_pin_2)
 {
     this->step_number = 0;                   // which step the motor is on
     this->direction = 0;                     // motor direction
@@ -31,6 +31,8 @@ Stepper::Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2, 
     this->motor_2 = 0;
     this->motor_3 = 0;
     this->motor_4 = 0;
+    this->motor_en_1 = 1;
+    this->motor_en_2 = 1;
 
     // pin_count is used by the stepMotor() method:
     this->pin_count = 4;
@@ -52,17 +54,30 @@ void Stepper::setSpeed(long whatSpeed)
     this->step_delay = 60L * 1000L * 1000L / this->number_of_steps / whatSpeed;
 }
 
-unsigned long Stepper::calc_step_delay(long whatSpeed)
+long Stepper::calc_step_delay(long whatSpeed)
 {
     return 60L * 1000L * 1000L / this->number_of_steps / whatSpeed;
 }
 
-void Stepper::ramp_speed(int start_speed, int end_speed, float ramp_time, int speed_steps)
+void Stepper::ramp_speed(int start_speed, int end_speed, int dir, float ramp_time, int speed_steps)
 {
     int speed_inc = (end_speed-start_speed)/speed_steps;
-    unsigned long inc_time = static_cast<unsigned long>((ramp_time*1000*1000)/speed_steps); //in us
+    if (speed_inc<1)
+    {
+        speed_inc = 1;
+    }
+    long inc_time = static_cast<long>((ramp_time*1000*1000)/speed_steps); //in us
     int new_speed = start_speed;
     int num_steps = 0;
+
+    if (dir>0)
+    {
+        dir = 1;
+    }
+    else
+    {
+        dir = -1;
+    }    
 
     for (int i=0; i<speed_steps; i++)
     {
@@ -73,11 +88,25 @@ void Stepper::ramp_speed(int start_speed, int end_speed, float ramp_time, int sp
             num_steps = 1;
         }
         this->setSpeed(new_speed);
-        this->step(-num_steps);
+        this->step(dir*num_steps);
     }
 
     this->setSpeed(end_speed);
     this->step(-this->number_of_steps);
+}
+
+void Stepper::enable_motor(bool enable)
+{
+    if (enable)
+    {
+        this->motor_en_1 = 1;
+        this->motor_en_2 = 1;
+    }
+    else
+    {
+        this->motor_en_1 = 0;
+        this->motor_en_2 = 0;       
+    }    
 }
 
 /*

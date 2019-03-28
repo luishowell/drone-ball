@@ -21,6 +21,28 @@ apa102 strip_2(PB_13, PB_15, PC_2, STRIP_LENGTH);	//sclk, mosi, miso SPI2
 apa102 strip_3(PE_2, PE_6, PE_5, STRIP_LENGTH);	//sclk, mosi, miso SPI4
 apa102 strip_4(PF_7, PF_9, PF_8, STRIP_LENGTH);	//sclk, mosi, miso SPI5
 
+Stepper stepper_motor(200, PD_4, PD_5, PD_6, PD_7, PG_2, PG_3); //input 1,2,3,4,en1,en2
+
+DigitalOut warning_led(LED1);
+AnalogIn battery_voltage_ain(PA_3);
+
+Ticker adc_ticker;
+
+
+void voltage_check()
+{
+	float voltage_div_factor = 17.0/3.3;
+	float min_battery_voltage = 13.5;
+
+	float battery_voltage = battery_voltage_ain*3.3*voltage_div_factor;
+
+	if (battery_voltage<min_battery_voltage)
+	{
+		warning_led = 1;
+		// TURN STUFF OFF
+		// return 1;
+	}
+}
 
 void convert_pixels(bitmap_image& image, unsigned int *input_array, int col)
 {
@@ -67,13 +89,11 @@ void setup_strips(int level, unsigned int freq)
 
 int main()
 {
+	adc_ticker.attach(&voltage_check, 2.0); //check battery voltage every 2 seconds for under voltage
+
 	int level=10;
 	unsigned int freq = 32000000;
 	setup_strips(level, freq);
-
-    Stepper stepper_motor(200, PD_4, PD_5, PD_6, PD_7);
-    //stepper_motor.setSpeed(350);  //rpm
-	stepper_motor.ramp_speed(0, 350);
 
 	pc.printf("\nOpening default image\n");
 	bitmap_image image("/sd/default.bmp");
@@ -92,6 +112,9 @@ int main()
 	unsigned int strip_2_array[STRIP_LENGTH];
 	unsigned int strip_3_array[STRIP_LENGTH];
 	unsigned int strip_4_array[STRIP_LENGTH];
+
+    //stepper_motor.setSpeed(350);  //rpm
+	stepper_motor.ramp_speed(0, 350);
 
 	while(1)
 	{
