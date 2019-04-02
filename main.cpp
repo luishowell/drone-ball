@@ -97,7 +97,13 @@ int main()
 		display_counter[0]++;
 	}
 
-	led_strip.clear();
+	// turn off leds
+	for (int i=0; i<4; i++)
+	{
+		mux.set_output(i);
+		led_strip.clear();
+	}	
+	//turn off stepper motor
 	stepper_motor.enable_motor(false);
 
 	return 1;
