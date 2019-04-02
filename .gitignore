@@ -4,4 +4,6 @@ mbed_settings.py
 mbed_settings.pyc
 *.mbed
 *.lib
+*.bin
+*.ipch
 compile_commands.json
