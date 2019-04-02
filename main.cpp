@@ -47,6 +47,7 @@ void voltage_check()
 
 int main()
 {
+	warning_led = 0;
 	adc_ticker.attach(&voltage_check, 2.0); //check battery voltage every 2 seconds for under voltage
 
 	led_strip.level(10);
