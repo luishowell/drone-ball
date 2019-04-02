@@ -44,36 +44,6 @@ void voltage_check()
 	}
 }
 
-void convert_pixels(bitmap_image& image, unsigned int *input_array, int col)
-{
-	rgb_t colour;
-	unsigned int pixel_rgb;
-	int red;
-	int green;
-	int blue;
-
-	for (int y = 0; y < STRIP_LENGTH; y++)
-	{
-		image.get_pixel(col, y, colour);
-
-		red = int(colour.red);
-		green = int(colour.green);
-		blue = int(colour.blue);
-
-		pixel_rgb = red;
-		pixel_rgb = (pixel_rgb<<8) + green;
-		pixel_rgb = (pixel_rgb<<8) + blue;
-
-		input_array[y] = pixel_rgb;				
-	}	
-}
-
-void change_image(bitmap_image& image, string filename)
-{
-    image.file_name_ = filename;
-    image.load_bitmap();
-}
-
 
 int main()
 {
@@ -95,10 +65,7 @@ int main()
 	}
 	
 	int display_counter[STRIP_NUMBER] = {0,0,0,0};
-	unsigned int strip_0_array[STRIP_LENGTH];
-	unsigned int strip_1_array[STRIP_LENGTH];
-	unsigned int strip_2_array[STRIP_LENGTH];
-	unsigned int strip_3_array[STRIP_LENGTH];
+	unsigned int strip_array[STRIP_LENGTH];
 
     //stepper_motor.setSpeed(350);  //rpm
 	stepper_motor.ramp_speed(0, 350, -1);
@@ -119,18 +86,21 @@ int main()
 			}
 		}
 
-		convert_pixels(image, strip_0_array, display_counter[0]);
+		image.fill_array_rgb(strip_array, display_counter[0], STRIP_LENGTH);
 		mux.set_output(0);
-		led_strip.post(strip_0_array);
-		convert_pixels(image, strip_1_array, display_counter[1]);
+		led_strip.post(strip_array);
+
+		image.fill_array_rgb(strip_array, display_counter[1], STRIP_LENGTH);
 		mux.set_output(1);
-		led_strip.post(strip_1_array);
-		convert_pixels(image, strip_2_array, display_counter[2]);
+		led_strip.post(strip_array);
+
+		image.fill_array_rgb(strip_array, display_counter[2], STRIP_LENGTH);
 		mux.set_output(2);
-		led_strip.post(strip_2_array);
-		convert_pixels(image, strip_3_array, display_counter[3]);
+		led_strip.post(strip_array);
+
+		image.fill_array_rgb(strip_array, display_counter[3], STRIP_LENGTH);
 		mux.set_output(3);
-		led_strip.post(strip_3_array);
+		led_strip.post(strip_array);
 
 		stepper_motor.step(-1);
 		display_counter[0]++;
