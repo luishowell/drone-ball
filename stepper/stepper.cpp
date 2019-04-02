@@ -1,4 +1,3 @@
-#include "mbed-os/mbed.h"
 #include "stepper.hpp"
 
 Timer step_timer;

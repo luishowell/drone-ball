@@ -25,7 +25,7 @@
 #ifndef Stepper_h
 #define Stepper_h
 
-#include "mbed-os/mbed.h"
+#include "mbed.h"
 
 // library interface description
 class Stepper {
