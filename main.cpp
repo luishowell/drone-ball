@@ -86,21 +86,12 @@ int main()
 			}
 		}
 
-		image.fill_array_rgb(strip_array, display_counter[0], STRIP_LENGTH);
-		mux.set_output(0);
-		led_strip.post(strip_array);
-
-		image.fill_array_rgb(strip_array, display_counter[1], STRIP_LENGTH);
-		mux.set_output(1);
-		led_strip.post(strip_array);
-
-		image.fill_array_rgb(strip_array, display_counter[2], STRIP_LENGTH);
-		mux.set_output(2);
-		led_strip.post(strip_array);
-
-		image.fill_array_rgb(strip_array, display_counter[3], STRIP_LENGTH);
-		mux.set_output(3);
-		led_strip.post(strip_array);
+		for (int i=0; i<4; i++)
+		{
+			image.fill_array_rgb(strip_array, display_counter[i], STRIP_LENGTH);
+			mux.set_output(i);
+			led_strip.post(strip_array);
+		}
 
 		stepper_motor.step(-1);
 		display_counter[0]++;
