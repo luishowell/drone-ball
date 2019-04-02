@@ -25,6 +25,7 @@ Mux mux(PF_3, PC_3, PC_0);
 
 DigitalOut warning_led(LED1);
 AnalogIn battery_voltage_ain(PA_3);
+bool run_flag = true;
 
 Ticker adc_ticker;
 
@@ -39,8 +40,7 @@ void voltage_check()
 	if (battery_voltage<min_battery_voltage)
 	{
 		warning_led = 1;
-		// TURN STUFF OFF
-		// return 1;
+		run_flag = false;
 	}
 }
 
@@ -57,8 +57,7 @@ int main()
 	bitmap_image image("/sd/default.bmp");
 	
 	if (!image)
-	{
-		//pc.printf("Failed to open image\n");		
+	{		
 		return 1;
 	}
 	else{
@@ -72,7 +71,7 @@ int main()
 	stepper_motor.ramp_speed(0, 350, -1);
 	mux.enable_output(true);
 
-	while(1)
+	while(run_flag)
 	{
 		if (display_counter[0]==DISPLAY_STEPS)
 		{
@@ -106,6 +105,9 @@ int main()
 		stepper_motor.step(-1);
 		display_counter[0]++;
 	}
+
+	led_strip.clear();
+	stepper_motor.enable_motor(false);
 
 	return 1;
 }
