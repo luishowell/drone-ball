@@ -8,17 +8,14 @@ class Mux
 {
 public:
     
-    Mux(PinName selA_pin, PinName selB_pin, PinName disable_pin);
+    Mux(PinName selA_pin, PinName selB_pin);
 
     void set_output(int output_sel);
-
-    void enable_output(bool en);
 
 private:
 
     DigitalOut selA;
-    DigitalOut selB;
-    DigitalOut disable;
+    DigitalOut selB;    
 };
 
 #endif

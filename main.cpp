@@ -21,7 +21,7 @@ apa102 led_strip(PF_7, PF_9, PF_8, STRIP_LENGTH);	//sclk, mosi, miso SPI5
 
 Stepper stepper_motor(200, PD_4, PD_5, PD_6, PD_7, PG_2, PG_3); //input 1,2,3,4,en1,en2
 
-Mux mux(PF_3, PC_3, PC_0);
+Mux mux(PF_3, PC_3);
 
 DigitalOut warning_led(LED1);
 AnalogIn battery_voltage_ain(PA_3);
@@ -69,7 +69,6 @@ int main()
 
     //stepper_motor.setSpeed(350);  //rpm
 	stepper_motor.ramp_speed(0, 350, -1);
-	mux.enable_output(true);
 
 	while(run_flag)
 	{
