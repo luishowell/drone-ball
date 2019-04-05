@@ -7,7 +7,7 @@ apa102::apa102(PinName SCLK_pn, PinName MOSI_pn, PinName MISO_pn, int STRIP_LENG
 {    
     _level=100;  
 
-    spi_class.format(16, 0);
+    spi_class.format(16, 3);
     spi_class.frequency(1000000);  //default to 1 MHz
     
     this->clear();

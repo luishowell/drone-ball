@@ -5,7 +5,6 @@
 #include "apa102.h"	//LED strip driver
 #include "stepper.hpp"
 #include "mux.hpp"
-
 #include <string>
 
 #define STRIP_LENGTH 144
@@ -19,15 +18,14 @@ FATFileSystem fs("sd", &sd);
 
 apa102 led_strip(PF_7, PF_9, PF_8, STRIP_LENGTH);	//sclk, mosi, miso SPI5
 
-Stepper stepper_motor(200, PD_4, PD_5, PD_6, PD_7, PG_2, PG_3); //input 1,2,3,4,en1,en2
+Mux mux(PE_3, PE_6); // A, B
 
-Mux mux(PF_3, PC_3);
+Ticker adc_ticker;
+EventQueue queue;
 
 DigitalOut warning_led(LED1);
 AnalogIn battery_voltage_ain(PA_3);
 bool run_flag = true;
-
-Ticker adc_ticker;
 
 
 void voltage_check()
@@ -39,18 +37,28 @@ void voltage_check()
 
 	if (battery_voltage<min_battery_voltage)
 	{
-		warning_led = 1;
-		run_flag = false;
-	}
+		warning_led = 1;		
+		//run_flag = false;
+	}	
+}
+void battery_isr()
+{
+	queue.call(&voltage_check);
 }
 
 
 int main()
 {
-	warning_led = 0;
-	adc_ticker.attach(&voltage_check, 2.0); //check battery voltage every 2 seconds for under voltage
+	Stepper stepper_motor(200, PD_4, PD_5, PD_6, PD_7, PG_2, PG_3); //input 1,2,3,4,en1,en2
 
-	led_strip.level(10);
+	pc.printf("Started!\n");
+	
+	warning_led = 0;
+	Thread eventThread;
+	eventThread.start(callback(&queue, &EventQueue::dispatch_forever));
+	adc_ticker.attach(&battery_isr, 2.0); //check battery voltage every 2 seconds for under voltage
+
+	led_strip.level(4);
 	led_strip.setFrequency(32000000);
 
 	pc.printf("\nOpening default image\n");
@@ -66,9 +74,6 @@ int main()
 	
 	int display_counter[STRIP_NUMBER] = {0,0,0,0};
 	unsigned int strip_array[STRIP_LENGTH];
-
-    //stepper_motor.setSpeed(350);  //rpm
-	stepper_motor.ramp_speed(0, 350, -1);
 
 	while(run_flag)
 	{
@@ -102,7 +107,7 @@ int main()
 		mux.set_output(i);
 		led_strip.clear();
 	}	
-	//turn off stepper motor
+	// turn off stepper motor
 	stepper_motor.enable_motor(false);
 
 	return 1;

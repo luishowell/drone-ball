@@ -2,22 +2,6 @@
 
 Timer step_timer;
 
-// Stepper::Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2)
-// : motor_1(motor_pin_1), motor_2(motor_pin_2)
-// {
-//     this->step_number = 0;                   // which step the motor is on
-//     this->direction = 0;                     // motor direction
-//     this->last_step_time = 0;                // time stamp in us of the last step taken
-//     this->number_of_steps = number_of_steps; // total number of steps for this motor
-
-//     // pin_count is used by the stepMotor() method:
-//     this->pin_count = 2;
-// }
-
-/*
-*   constructor for four-pin version
-*   Sets which wires should control the motor.
-*/
 Stepper::Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2, PinName motor_pin_3, PinName motor_pin_4, PinName motor_en_pin_1, PinName motor_en_pin_2)
 : motor_1(motor_pin_1), motor_2(motor_pin_2), motor_3(motor_pin_3), motor_4(motor_pin_4), motor_en_1(motor_en_pin_1), motor_en_2(motor_en_pin_2)
 {
@@ -171,28 +155,16 @@ void Stepper::step(int steps_to_move)
 */
 void Stepper::stepMotor(int thisStep)
 {
-    // if (this->pin_count == 2)
-    // {
-    //     switch (thisStep)
-    //     {
-    //     case 0: // 01
-    //         digitalWrite(motor_pin_1, LOW);
-    //         digitalWrite(motor_pin_2, HIGH);
-    //         break;
-    //     case 1: // 11
-    //         digitalWrite(motor_pin_1, HIGH);
-    //         digitalWrite(motor_pin_2, HIGH);
-    //         break;
-    //     case 2: // 10
-    //         digitalWrite(motor_pin_1, HIGH);
-    //         digitalWrite(motor_pin_2, LOW);
-    //         break;
-    //     case 3: // 00
-    //         digitalWrite(motor_pin_1, LOW);
-    //         digitalWrite(motor_pin_2, LOW);
-    //         break;
-    //     }
-    // }
+    /*
+    * The sequence of control signals for 4 control wires is as follows:
+    *
+    * Step C0 C1 C2 C3
+    *    1  1  0  1  0
+    *    2  0  1  1  0
+    *    3  0  1  0  1
+    *    4  1  0  0  1
+    *
+    */
     if (this->pin_count == 4)
     {
         switch (thisStep)
