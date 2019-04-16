@@ -53,7 +53,7 @@ class SDFileSystem
          * @param pins Struct containing the pins used for the SD card
          * @param pc Pointer to a serial connection for pc.printf for debug
          */
-        SDFileSystem(sdPins_t pins, Serial* pc);
+        SDFileSystem(sdPins_t pins, RawSerial* pc);
 
 
         /**
@@ -98,7 +98,7 @@ class SDFileSystem
         void cleanDirectory(const char * path);
 
         //pc print if needed
-        Serial* m_pc;
+        RawSerial* m_pc;
 
         //util values
         int err;

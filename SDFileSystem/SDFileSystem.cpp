@@ -19,7 +19,7 @@ SDFileSystem::SDFileSystem(sdPins_t pins)
 
 
 //constructor
-SDFileSystem::SDFileSystem(sdPins_t pins, Serial* pc)
+SDFileSystem::SDFileSystem(sdPins_t pins, RawSerial* pc)
 {
     //save the pins internally
     m_pins = new sdPins_t;
