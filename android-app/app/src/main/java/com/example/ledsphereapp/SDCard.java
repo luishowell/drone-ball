@@ -11,13 +11,6 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +18,9 @@ public class SDCard extends AppCompatActivity {
 
     private TextView txtContent;
     private Spinner selectFileSpinner;
+
+    //Bluetooth helper to send command
+    BluetoothHelper btHelper = new BluetoothHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +38,7 @@ public class SDCard extends AppCompatActivity {
         readSDCardListButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                txtContent.setText(FileHelper.ReadFile(SDCard.this)); //read the file and save
-                addItemsToSpinner();
+                getSDCardList();
             }
 
         });
@@ -80,6 +75,10 @@ public class SDCard extends AppCompatActivity {
 
         //split the file by delimiter and load to the spinner
         String str = FileHelper.ReadFile(SDCard.this);
+        if(str == null){
+            msg("Error: File not found");
+            return;
+        }
         String [] arrOfStr = str.split("\n");
         for(String a:arrOfStr) {
             list.add(a);
@@ -94,11 +93,36 @@ public class SDCard extends AppCompatActivity {
     //submit the selection to the sphere
     public void submitSelection() {
 
-        //place holder for now
-        Toast.makeText(getApplicationContext(),
-                "OnClickListener : " +
-                        "\nSpinner selection : "+ String.valueOf(selectFileSpinner.getSelectedItem()),
-                Toast.LENGTH_SHORT).show();
+        String sel = String.valueOf(selectFileSpinner.getSelectedItem());
+        //Print the selection
+        msg("OnClickListener : " + "\nSpinner selection : "+ sel);
+
+        //send the command byte
+        btHelper.sendCommandBT((byte)0x43);
+
+        //parse and send selected file
+        String selNum =  sel.split("\t")[0];
+        int toSend = Integer.parseInt(selNum);
+        btHelper.sendCommandBT((byte)toSend);
+    }
+
+    // fast way to call Toast
+    private void msg(String s)
+    {
+        Toast.makeText(getApplicationContext(),s,Toast.LENGTH_LONG).show();
+    }
+
+    //get the file list from the SD card
+    private void getSDCardList()
+    {
+        //request file list from micro
+        btHelper.sendCommandBT((byte)0x32);
+
+        //wait for the file back
+
+        //read the file and display on spinner
+        txtContent.setText(FileHelper.ReadFile(SDCard.this));
+        addItemsToSpinner();
     }
 
 }

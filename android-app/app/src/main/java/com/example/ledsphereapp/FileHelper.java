@@ -12,12 +12,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import static android.os.Environment.DIRECTORY_DOCUMENTS;
+
 /**
  * Created by Tan on 2/18/2016.
  */
 public class FileHelper {
-    final static String fileName = "data.txt";
-    final static String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/instinctcoder/readwrite/" ;
+    final static String fileName = "SDCardContents.txt";
+    final static String path = Environment.getExternalStoragePublicDirectory(DIRECTORY_DOCUMENTS).getAbsolutePath() + "/LEDSphere/" ;
     final static String TAG = FileHelper.class.getName();
 
     public static  String ReadFile( Context context){

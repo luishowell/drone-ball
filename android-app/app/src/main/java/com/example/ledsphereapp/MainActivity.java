@@ -9,10 +9,8 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.content.Intent;
-import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -30,6 +28,9 @@ public class MainActivity extends AppCompatActivity {
     private Button button_sd;
     private Button button_photo;
     private Button button_settings;
+
+    //Bluetooth helper to send command
+    BluetoothHelper btHelper = new BluetoothHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
             commandByte = 0x21;
         }
         //send the byte
-        sendCommandBT(commandByte);
+        btHelper.sendCommandBT(commandByte);
     }
 
     // fast way to call Toast
@@ -188,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
                 msg("Error");
             }
         }else{
-            msg("Connect a bluetooth device in settings");
+            msg("no bluetooth device connected");
         }
     }
 }

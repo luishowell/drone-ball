@@ -29,27 +29,16 @@ import android.os.AsyncTask;
 import java.io.IOException;
 import java.util.UUID;
 import android.app.ProgressDialog;
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.widget.TextView;
-import android.widget.Toast;
-import java.util.ArrayList;
-import java.util.Set;
 
 public class SettingsPage extends AppCompatActivity {
 
 
     EditText editImHeight;
     EditText editImWidth;
+
+    //Bluetooth helper to send command
+    BluetoothHelper btHelper = new BluetoothHelper(this);
 
     Button btnPaired;
     Button btnSendTest;
@@ -159,7 +148,8 @@ public class SettingsPage extends AppCompatActivity {
         btnSendTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendWidth();
+                byte toSend = (byte)0xFF;
+                btHelper.sendCommandBT(toSend);
             }
         });
     }
@@ -201,30 +191,6 @@ public class SettingsPage extends AppCompatActivity {
             new ConnectBT().execute(); //Call the class to connect
         }
     };
-
-
-    //send width
-    private void sendWidth()
-    {
-
-        //init global variables
-        final GlobalVariables globalVars = (GlobalVariables)getApplication();
-
-        if (globalVars.btSocket!=null)
-        {
-            try
-            {
-                byte[] toSend = ("j").getBytes();
-                OutputStream mmOutputStream = globalVars.btSocket.getOutputStream();
-                mmOutputStream.write(toSend);
-                //msg("ByteSent");
-            }
-            catch (IOException e)
-            {
-                msg("Error");
-            }
-        }
-    }
 
 
     // fast way to call Toast
