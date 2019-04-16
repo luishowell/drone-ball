@@ -49,12 +49,11 @@ void hc05::sendFile(FILE *fSend)
         this->m_pc->printf("Sending file over bluetooth\n");
     }
     //send the file
-    //TODO replace to send over m_bt
     char buff[1] = {0};
 	while (!feof(fSend)){
 		int size = fread(&buff[0], 1, 1, fSend);
         if(this->pcConnected == true){
-            this->m_pc->printf("%c",buff[0]);
+            this->m_bt->printf("%c",buff[0]);
         }
 	}
 
