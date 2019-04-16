@@ -11,6 +11,8 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,6 +95,7 @@ public class SDCard extends AppCompatActivity {
     //submit the selection to the sphere
     public void submitSelection() {
 
+        /*
         String sel = String.valueOf(selectFileSpinner.getSelectedItem());
         //Print the selection
         msg("OnClickListener : " + "\nSpinner selection : "+ sel);
@@ -104,6 +107,8 @@ public class SDCard extends AppCompatActivity {
         String selNum =  sel.split("\t")[0];
         int toSend = Integer.parseInt(selNum);
         btHelper.sendCommandBT((byte)toSend);
+        */
+        msg(btHelper.allData);
     }
 
     // fast way to call Toast
@@ -119,6 +124,19 @@ public class SDCard extends AppCompatActivity {
         btHelper.sendCommandBT((byte)0x32);
 
         //wait for the file back
+        btHelper.beginListenForData();
+
+
+
+        //stop listening for data
+        //try
+        //{
+        //    btHelper.endListenForData();
+        //}
+        //catch (IOException ex)
+        //{
+        //    msg("error closing input stream");
+        //}
 
         //read the file and display on spinner
         txtContent.setText(FileHelper.ReadFile(SDCard.this));
