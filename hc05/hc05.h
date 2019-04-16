@@ -34,7 +34,7 @@ class hc05
          * @param rx Receive pin
          * @param pc Pointer to a serial connection for pc.printf for debug
          */
-        hc05(PinName tx, PinName rx, Serial* pc);
+        hc05(PinName tx, PinName rx, RawSerial* pc);
 
 
         /**
@@ -51,21 +51,18 @@ class hc05
          */
         void sendFile(FILE *fSend);
 
-        
+        //bluetooth object
+        RawSerial *m_bt;        
 
 
     private:
-
-        //bluetooth object
-        Serial *bt;
-
 
         //save the pins internally
         PinName m_tx;
         PinName m_rx;
 
         //pc print if needed
-        Serial* m_pc;
+        RawSerial* m_pc;
 
         //util values
         int err;
