@@ -16,6 +16,9 @@ import android.widget.TextView;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 import static java.lang.Boolean.TRUE;
 
 public class MainActivity extends AppCompatActivity {
@@ -147,15 +150,42 @@ public class MainActivity extends AppCompatActivity {
         switchState = masterSwitch.isChecked();
 
         if(switchState == TRUE) {
+            
             //send a notification to the sphere
-            Toast.makeText(getApplicationContext(),
-                    "Switch on" ,
-                    Toast.LENGTH_SHORT).show();
+            msg("Switch on");
         } else {
+
             //send a notification to the sphere
-            Toast.makeText(getApplicationContext(),
-                    "Switch Off" ,
-                    Toast.LENGTH_SHORT).show();
+            msg("Switch off");
+        }
+    }
+
+    // fast way to call Toast
+    private void msg(String s)
+    {
+        Toast.makeText(getApplicationContext(),s,Toast.LENGTH_LONG).show();
+    }
+
+
+    //send command over bluetooth
+    private void sendCommandBT(byte toSend)
+    {
+
+        //init global variables
+        final GlobalVariables globalVars = (GlobalVariables)getApplication();
+
+        if (globalVars.btSocket!=null)
+        {
+            try
+            {
+                OutputStream mmOutputStream = globalVars.btSocket.getOutputStream();
+                mmOutputStream.write(toSend);
+                //msg("Command Sent");
+            }
+            catch (IOException e)
+            {
+                msg("Error");
+            }
         }
     }
 }
