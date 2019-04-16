@@ -41,6 +41,14 @@ char hc05::readCharacter()
     return val;
 }
 
+//send a character
+void hc05::sendCharacter(char toSend)
+{
+    //send the character to the serial port
+    this->m_bt->putc(toSend);
+
+}
+
 
 //send a file
 void hc05::sendFile(FILE *fSend)
