@@ -149,15 +149,17 @@ public class MainActivity extends AppCompatActivity {
         // check current state of a Switch (true or false).
         switchState = masterSwitch.isChecked();
 
-        if(switchState == TRUE) {
-            
-            //send a notification to the sphere
-            msg("Switch on");
-        } else {
+        byte commandByte = 0;
 
-            //send a notification to the sphere
+        if(switchState == TRUE) {
+            msg("Switch on");
+            commandByte = 0x10;
+        } else {
             msg("Switch off");
+            commandByte = 0x21;
         }
+        //send the byte
+        sendCommandBT(commandByte);
     }
 
     // fast way to call Toast
@@ -180,12 +182,13 @@ public class MainActivity extends AppCompatActivity {
             {
                 OutputStream mmOutputStream = globalVars.btSocket.getOutputStream();
                 mmOutputStream.write(toSend);
-                //msg("Command Sent");
             }
             catch (IOException e)
             {
                 msg("Error");
             }
+        }else{
+            msg("Connect a bluetooth device in settings");
         }
     }
 }

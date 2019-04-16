@@ -246,21 +246,19 @@ public class SettingsPage extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... devices) //while the progress dialog is shown, the connection is done in background
         {
+            //init global variables
+            final GlobalVariables globalVars = (GlobalVariables)getApplication();
+
             try
             {
-                //init global variables
-                final GlobalVariables globalVars = (GlobalVariables)getApplication();
 
                 if (globalVars.btSocket == null || !isBtConnected)
                 {
-                    //msg("Connecting");
                     myBluetooth = BluetoothAdapter.getDefaultAdapter();//get the mobile bluetooth device
                     BluetoothDevice dispositivo = myBluetooth.getRemoteDevice(address);//connects to the device's address and checks if it's available
                     globalVars.btSocket = dispositivo.createInsecureRfcommSocketToServiceRecord(myUUID);//create a RFCOMM (SPP) connection
                     BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
                     globalVars.btSocket.connect();//start connection
-                    //btSocket.getOutputStream().write(0xffff);
-
                 }
             }
             catch (IOException e)
@@ -273,6 +271,8 @@ public class SettingsPage extends AppCompatActivity {
         protected void onPostExecute(Void result) //after the doInBackground, it checks if everything went fine
         {
             super.onPostExecute(result);
+            //init global variables
+            final GlobalVariables globalVars = (GlobalVariables)getApplication();
 
             if (!ConnectSuccess)
             {
