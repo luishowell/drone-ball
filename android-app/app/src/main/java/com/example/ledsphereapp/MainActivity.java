@@ -1,6 +1,8 @@
 package com.example.ledsphereapp;
 
+import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,7 +19,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 
 import static java.lang.Boolean.TRUE;
 
@@ -35,6 +39,14 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar rpmSeek;
     private Button rpmButton;
     private TextView rpmView;
+
+    //display the battery voltage
+    private static TextView vbattView;
+    MyHandler btIn;
+    final static int handlerState = 0;
+    private static StringBuilder recDataString = new StringBuilder();
+
+
 
 
     //Bluetooth helper to send command
@@ -110,6 +122,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //vbatt view setup
+        vbattView = (TextView) findViewById(R.id.vbattView);
+
+        btIn = new MyHandler(this);
+
 
         //rpm stuff
         rpmSeek = (SeekBar) findViewById(R.id.rpmSeekBar);
@@ -149,6 +166,46 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         
+    }
+
+
+    private static class MyHandler extends Handler  {
+        private final WeakReference<MainActivity> mActivity;
+
+        public MyHandler(MainActivity activity)  {
+            mActivity = new WeakReference<MainActivity>(activity);
+        }
+
+        @Override
+        public void handleMessage(android.os.Message msg) {
+            if (msg.what == handlerState) {                                        //if message is what we want
+                String readMessage = (String) msg.obj;                                                                // msg.arg1 = bytes from connect thread
+                recDataString.append(readMessage);                                    //keep appending to string until ~
+                int endOfLineIndex = recDataString.indexOf("~");                    // determine the end-of-line
+                if (endOfLineIndex > 0) {                                           // make sure there data before ~
+                    String dataInPrint = recDataString.substring(0, endOfLineIndex);    // extract string
+                    //txtString.setText("Data Received = " + dataInPrint);
+                    int dataLength = dataInPrint.length();                            //get length of data received
+                    //txtStringLength.setText("String Length = " + String.valueOf(dataLength));
+
+                    if (recDataString.charAt(0) == '#')                                //if it starts with # we know it is what we are looking for
+                    {
+                        String sensor0 = recDataString.substring(1, 5);             //get sensor value from string between indices 1-5
+                        vbattView.setText(" Vbatt = " + sensor0 + "V");    //update the textviews with sensor values
+
+                    }
+                    recDataString.delete(0, recDataString.length());                    //clear all string data
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        btHelper.stopListening();
+
     }
 
     @Override
@@ -227,6 +284,13 @@ public class MainActivity extends AppCompatActivity {
     private void msg(String s)
     {
         Toast.makeText(getApplicationContext(),s,Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        btHelper.resumeListening(btIn);
+
     }
 
 

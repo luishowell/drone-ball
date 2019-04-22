@@ -1,7 +1,9 @@
 package com.example.ledsphereapp;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -16,8 +18,11 @@ public class BluetoothHelper {
         this.activity = act;
     }
 
-    public boolean readEnded = false;
-    public String allData = "";
+    Handler btIn;
+    final int handlerState = 0;
+    private StringBuilder recDataString = new StringBuilder();
+    private ConnectedThread mConnectedThread;
+
 
     // fast way to call Toast
     private void msg(String s)
@@ -63,124 +68,86 @@ public class BluetoothHelper {
         }, delayMS);
     }
 
-    InputStream mmInputStream;
-    Thread workerThread;
-    byte[] readBuffer;
-    int readBufferPosition;
-    int counter;
-    volatile boolean stopWorker;
+    //resume listening when page becomes active again
+    public void resumeListening(Handler connectedHandler) {
 
-    void beginListenForData()
-    {
+        btIn = connectedHandler;
 
-        readEnded = false;
+        final GlobalVariables globalVars = (GlobalVariables) this.activity.getApplication();
 
-        final Handler handler = new Handler();
-        final byte delimiter = 10; //This is the ASCII code for a newline character
+        if(globalVars.btSocket != null) {
+            mConnectedThread = new ConnectedThread(globalVars.btSocket);
+            mConnectedThread.start();
 
-        //init global variables
-        final GlobalVariables globalVars = (GlobalVariables)this.activity.getApplication();
-
-        if (globalVars.btSocket!=null)
+        }
+        else
         {
-            try
-            {
-                mmInputStream = globalVars.btSocket.getInputStream();
+            msg("Connect bluetooth device for Vbatt");
+        }
+    }
+
+    //stop listening when leaving an activity
+    public void stopListening()  {
+        if(mConnectedThread != null) {
+            mConnectedThread.running = false;
+        }
+    }
+
+    //create new class for connect thread
+    private class ConnectedThread extends Thread {
+        private final InputStream mmInStream;
+        private final OutputStream mmOutStream;
+
+        volatile boolean running = true;
+
+        //creation of the connect thread
+        public ConnectedThread(BluetoothSocket socket) {
+            InputStream tmpIn = null;
+            OutputStream tmpOut = null;
+
+            try {
+                //Create I/O streams for connection
+                tmpIn = socket.getInputStream();
+                tmpOut = socket.getOutputStream();
+            } catch (IOException e) {
             }
-            catch (IOException e)
-            {
-                msg("Error");
-            }
-        }else{
-            msg("no bluetooth device connected");
+
+            mmInStream = tmpIn;
+            mmOutStream = tmpOut;
         }
 
 
+        public void run() {
+            byte[] buffer = new byte[256];
+            int bytes;
 
-        stopWorker = false;
-        readBufferPosition = 0;
-        readBuffer = new byte[1024];
-        workerThread = new Thread(new Runnable()
-        {
-            public void run()
-            {
-                while(!Thread.currentThread().isInterrupted() && !stopWorker)
-                {
-                    try
-                    {
-                        int bytesAvailable = mmInputStream.available();
-                        if(bytesAvailable > 0)
-                        {
-                            byte[] packetBytes = new byte[bytesAvailable];
-                            mmInputStream.read(packetBytes);
-                            for(int i=0;i<bytesAvailable;i++)
-                            {
-                                byte b = packetBytes[i];
-                                if(b == delimiter)
-                                {
-                                    byte[] encodedBytes = new byte[readBufferPosition];
-                                    System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                    final String data = new String(encodedBytes, "US-ASCII");
-                                    readBufferPosition = 0;
-
-                                    handler.post(new Runnable()
-                                    {
-                                        public void run()
-                                        {
-                                            msg(data);
-                                            allData += data;
-                                            readEnded = true;
-                                            //stopWorker = true;
-                                        }
-                                    });
-                                }
-                                else
-                                {
-                                    readBuffer[readBufferPosition++] = b;
-                                }
-                            }
-                            //stopWorker = true;
-                        }
-                    }
-                    catch (IOException ex)
-                    {
-                        msg("stopping worker");
-                        stopWorker = true;
-                    }
+            // Keep looping to listen for received messages
+            while (true) {
+                try {
+                    bytes = mmInStream.read(buffer);            //read bytes from input buffer
+                    String readMessage = new String(buffer, 0, bytes);
+                    // Send the obtained bytes to the UI Activity via handler
+                    btIn.obtainMessage(handlerState, bytes, -1, readMessage).sendToTarget();
+                } catch (IOException e) {
+                    break;
                 }
+                if(!running) return;
             }
-        });
-
-        workerThread.start();
-    }
-
-    void endListenForData() throws IOException
-    {
-        mmInputStream.close();
-        readEnded = false;
-    }
-
-    void readData()
-    {
-        //init global variables
-        final GlobalVariables globalVars = (GlobalVariables)this.activity.getApplication();
-
-        //check the bluetooth is connected and that
-        if (globalVars.btSocket!=null)
-        {
-            try
-            {
-                mmInputStream = globalVars.btSocket.getInputStream();
-            }
-            catch (IOException e)
-            {
-                msg("Error");
-            }
-        }else{
-            msg("no bluetooth device connected");
         }
 
+        //write method
+        public void write(String input) {
+            byte[] msgBuffer = input.getBytes();           //converts entered String into bytes
+            try {
+                mmOutStream.write(msgBuffer);                //write bytes over BT connection via outstream
+            } catch (IOException e) {
+                //if you cannot write, close the application
+                msg("Connection Failure");
 
+            }
+        }
     }
+
+
 
 }
