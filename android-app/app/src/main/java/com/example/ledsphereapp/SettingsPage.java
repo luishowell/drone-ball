@@ -36,6 +36,7 @@ public class SettingsPage extends AppCompatActivity {
 
     EditText editImHeight;
     EditText editImWidth;
+    EditText editMaxRPM;
 
     //Bluetooth helper to send command
     BluetoothHelper btHelper = new BluetoothHelper(this);
@@ -103,6 +104,22 @@ public class SettingsPage extends AppCompatActivity {
                     //store the value in the relevant int value
                     String image_height_str = v.getText().toString();
                     globalVars.imageHeight = Integer.parseInt(image_height_str);
+                }
+                return handled;
+            }
+        });
+
+
+        editMaxRPM = (EditText) findViewById(R.id.editMaxRPM);
+        editMaxRPM.setText(Integer.toString(globalVars.maxRPM));
+        editMaxRPM.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean handled = false;
+                if (actionId == EditorInfo.IME_ACTION_DONE)  {
+                    //store the value in the relevant int
+                    String maxRPMString = v.getText().toString();
+                    globalVars.maxRPM = Integer.parseInt(maxRPMString);
                 }
                 return handled;
             }

@@ -10,8 +10,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.content.Intent;
 import android.widget.CompoundButton;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -28,6 +30,12 @@ public class MainActivity extends AppCompatActivity {
     private Button button_sd;
     private Button button_photo;
     private Button button_settings;
+
+    //rpm stuff
+    private SeekBar rpmSeek;
+    private Button rpmButton;
+    private TextView rpmView;
+
 
     //Bluetooth helper to send command
     BluetoothHelper btHelper = new BluetoothHelper(this);
@@ -48,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        GlobalVariables globalVars = (GlobalVariables)getApplication();
+        final GlobalVariables globalVars = (GlobalVariables)getApplication();
 
         //setup the button that takes you to the draw image window
         button_draw = (Button) findViewById(R.id.button_draw);
@@ -99,6 +107,41 @@ public class MainActivity extends AppCompatActivity {
         masterSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 switchEvent();
+            }
+        });
+
+
+        //rpm stuff
+        rpmSeek = (SeekBar) findViewById(R.id.rpmSeekBar);
+        rpmButton = (Button) findViewById(R.id.rpmSendButton);
+        rpmView = (TextView) findViewById(R.id.rpmView);
+
+
+        //listener for progress bar changes
+        rpmSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int rpm = (progress * globalVars.maxRPM)/ 100;
+                rpmView.setText("" + rpm + " RPM");
+                globalVars.hoopRPM = progress; //percentage of max
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        //listener for send rpm button
+        rpmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendRPM();
             }
         });
         
@@ -163,6 +206,19 @@ public class MainActivity extends AppCompatActivity {
         btHelper.sendCommandBT(commandByte);
     }
 
+    private void sendRPM()  {
+
+        //send the command byte
+        byte commandByte = 0x65;
+        btHelper.sendCommandBT(commandByte);
+
+        //get the rpm values
+        final GlobalVariables globalVars = (GlobalVariables)getApplication();
+
+        //send the rpm value
+        btHelper.sendCommandBT((byte)globalVars.hoopRPM);
+    }
+
     // fast way to call Toast
     private void msg(String s)
     {
@@ -170,26 +226,5 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //send command over bluetooth
-    private void sendCommandBT(byte toSend)
-    {
 
-        //init global variables
-        final GlobalVariables globalVars = (GlobalVariables)getApplication();
-
-        if (globalVars.btSocket!=null)
-        {
-            try
-            {
-                OutputStream mmOutputStream = globalVars.btSocket.getOutputStream();
-                mmOutputStream.write(toSend);
-            }
-            catch (IOException e)
-            {
-                msg("Error");
-            }
-        }else{
-            msg("no bluetooth device connected");
-        }
-    }
 }

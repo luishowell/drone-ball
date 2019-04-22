@@ -8,4 +8,7 @@ public class GlobalVariables extends Application {
     int imageWidth = 200;
 
     BluetoothSocket btSocket = null;
+
+    int hoopRPM = 33; // as a percentage of max
+    int maxRPM = 350;
 }
