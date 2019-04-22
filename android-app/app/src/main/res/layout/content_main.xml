@@ -123,36 +123,57 @@
         android:id="@+id/button_sd"
         android:layout_width="149dp"
         android:layout_height="97dp"
-        android:layout_marginEnd="128dp"
-        android:layout_marginRight="128dp"
-        android:layout_marginBottom="396dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="8dp"
         android:onClick="goToSDWindow()"
         android:text="Select File From Drone SD Card"
         app:layout_constraintBottom_toBottomOf="@+id/constraintLayout"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.512"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.302" />
 
     <Button
         android:id="@+id/button_draw"
         android:layout_width="149dp"
         android:layout_height="97dp"
-        android:layout_marginTop="64dp"
-        android:layout_marginEnd="128dp"
-        android:layout_marginRight="128dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="8dp"
         android:onClick="goToDrawWindow()"
         android:text="Draw Window"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintHorizontal_bias="0.512"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.129" />
 
     <Button
         android:id="@+id/button_photo"
         android:layout_width="149dp"
         android:layout_height="97dp"
-        android:layout_marginEnd="128dp"
-        android:layout_marginRight="128dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:layout_marginBottom="272dp"
         android:onClick="goToImageWindow()"
         android:text="Select File From Device"
         app:layout_constraintBottom_toBottomOf="@+id/constraintLayout"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.512"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.895" />
 
 </android.support.constraint.ConstraintLayout>

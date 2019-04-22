@@ -2,6 +2,7 @@ package com.example.ledsphereapp;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothSocket;
+import android.graphics.Bitmap;
 import android.os.Handler;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -66,6 +67,32 @@ public class BluetoothHelper {
                 sendCommandBT(toSend);
             }
         }, delayMS);
+    }
+
+    //send a bmp over bluetooth
+    public void sendBmpFile(/*Bitmap bmp,*/ final String filename)
+    {
+        //send command char
+        sendCommandBT((byte)0x54);
+
+        //send the filename
+        //use a handler to delay it
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //action to do after the delay
+                byte[] b = filename.getBytes();
+                for(int i = 0; i < b.length; i++) {
+                    sendCommandBT(b[i]);
+                }
+            }
+        }, 100);
+
+
+
+
+
     }
 
     //resume listening when page becomes active again

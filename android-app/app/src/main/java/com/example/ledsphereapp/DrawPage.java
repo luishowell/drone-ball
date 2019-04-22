@@ -53,9 +53,12 @@ public class DrawPage extends Activity implements OnClickListener{
     //custom drawing view
     private DrawingView drawView;
     //paint colour
-    private ImageButton currPaint, drawBtn, eraseBtn, newBtn, saveBtn;
+    private ImageButton currPaint, drawBtn, eraseBtn, newBtn, saveBtn, sendBtn;
     //sizes
     private float smallBrush, mediumBrush, largeBrush;
+
+    //bool to say if the image should be sent
+    private boolean sndBool = false;
 
     //text show
     ProgressDialog pd;
@@ -63,22 +66,15 @@ public class DrawPage extends Activity implements OnClickListener{
     //filename variable
     private String m_Filename = "";
 
+
+    //Bluetooth helper to send command
+    BluetoothHelper btHelper = new BluetoothHelper(this);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_draw_page);
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-//
-//        FloatingActionButton fab = findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
 
         //get drawing view
         drawView = (DrawingView)findViewById(R.id.drawing);
@@ -121,6 +117,10 @@ public class DrawPage extends Activity implements OnClickListener{
         //save button
         saveBtn = (ImageButton)findViewById(R.id.save_btn);
         saveBtn.setOnClickListener(this);
+
+        //send button
+        sendBtn = (ImageButton)findViewById(R.id.send_btn);
+        sendBtn.setOnClickListener(this);
 
         //for text display i think
         pd = new ProgressDialog(DrawPage.this);
@@ -245,30 +245,14 @@ public class DrawPage extends Activity implements OnClickListener{
         }
         else if(view.getId()==R.id.save_btn){
             //save drawing
+            sndBool = false;
             getFilename();
 
-
-            /*
-                    if(imgSaved!=null){
-                        Toast savedToast = Toast.makeText(getApplicationContext(),
-                                "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
-                        savedToast.show();
-                    }
-                    else{
-                        Toast unsavedToast = Toast.makeText(getApplicationContext(),
-                                "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
-                        unsavedToast.show();
-                    }
-                    drawView.destroyDrawingCache();
-                }
-            });
-            saveDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog, int which){
-                    dialog.cancel();
-                }
-            });
-            saveDialog.show();
-            */
+        }
+        else if(view.getId() == R.id.send_btn) {
+            //save and send drawing
+            sndBool = true;
+            getFilename();
         }
     }
 
@@ -290,6 +274,7 @@ public class DrawPage extends Activity implements OnClickListener{
 
         //scale the bitmap
         bitmap = Bitmap.createScaledBitmap(bitmap, globalVars.imageWidth, globalVars.imageHeight, false);
+
 
         try {
             pictureFile.createNewFile();
@@ -378,6 +363,9 @@ public class DrawPage extends Activity implements OnClickListener{
             public void onClick(DialogInterface dialog, int which) {
                 m_Filename = input.getText().toString();
                 saveDrawing();
+                if(sndBool == true) {
+                    sendDrawing();
+                }
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -388,6 +376,23 @@ public class DrawPage extends Activity implements OnClickListener{
         });
 
         builder.show();
+    }
+
+    private void sendDrawing() {
+
+        Bitmap toSnd = getBitmapFromView(drawView);
+
+        //find global variables
+        final GlobalVariables globalVars = (GlobalVariables)getApplication();
+
+        //scale the bitmap
+        toSnd = Bitmap.createScaledBitmap(toSnd, globalVars.imageWidth, globalVars.imageHeight, false);
+
+        //send the bitmap over bluetooth
+        String filename = m_Filename + ".bmp";
+        btHelper.sendBmpFile(filename);
+
+
     }
 
 }
