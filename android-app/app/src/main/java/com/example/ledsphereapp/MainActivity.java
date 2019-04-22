@@ -116,6 +116,10 @@ public class MainActivity extends AppCompatActivity {
         rpmButton = (Button) findViewById(R.id.rpmSendButton);
         rpmView = (TextView) findViewById(R.id.rpmView);
 
+        //set defaults
+        rpmSeek.setProgress(globalVars.hoopRPM);
+        int rpm = (globalVars.hoopRPM * globalVars.maxRPM)/ 100;
+        rpmView.setText("" + rpm + " RPM");
 
         //listener for progress bar changes
         rpmSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -215,8 +219,8 @@ public class MainActivity extends AppCompatActivity {
         //get the rpm values
         final GlobalVariables globalVars = (GlobalVariables)getApplication();
 
-        //send the rpm value
-        btHelper.sendCommandBT((byte)globalVars.hoopRPM);
+        //send the rpm value after 100ms
+        btHelper.delayedSendBT((byte)globalVars.hoopRPM, 100);
     }
 
     // fast way to call Toast

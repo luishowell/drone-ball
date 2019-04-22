@@ -95,7 +95,7 @@ public class SDCard extends AppCompatActivity {
     //submit the selection to the sphere
     public void submitSelection() {
 
-        /*
+
         String sel = String.valueOf(selectFileSpinner.getSelectedItem());
         //Print the selection
         msg("OnClickListener : " + "\nSpinner selection : "+ sel);
@@ -103,12 +103,12 @@ public class SDCard extends AppCompatActivity {
         //send the command byte
         btHelper.sendCommandBT((byte)0x43);
 
-        //parse and send selected file
+        //parse and send selected file after 100ms
         String selNum =  sel.split("\t")[0];
         int toSend = Integer.parseInt(selNum);
-        btHelper.sendCommandBT((byte)toSend);
-        */
-        msg(btHelper.allData);
+        btHelper.delayedSendBT((byte)toSend, 100);
+
+        //msg(btHelper.allData);
     }
 
     // fast way to call Toast
@@ -124,7 +124,7 @@ public class SDCard extends AppCompatActivity {
         btHelper.sendCommandBT((byte)0x32);
 
         //wait for the file back
-        btHelper.beginListenForData();
+        //btHelper.beginListenForData();
 
 
 

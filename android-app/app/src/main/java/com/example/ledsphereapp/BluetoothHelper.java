@@ -49,6 +49,20 @@ public class BluetoothHelper {
         }
     }
 
+    //send command over bluetooth after some delay
+    public void delayedSendBT(final byte toSend, long delayMS)
+    {
+        //use a handler to do the delay
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //action to do after the delay
+                sendCommandBT(toSend);
+            }
+        }, delayMS);
+    }
+
     InputStream mmInputStream;
     Thread workerThread;
     byte[] readBuffer;
