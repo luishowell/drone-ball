@@ -52,6 +52,13 @@ class hc05
         void sendCharacter(char toSend);
 
         /**
+         * @brief Function to send a float
+         * 
+         * @param toSend The flaot to be sent
+         */
+        void sendFloat(float toSend);
+
+        /**
          * @brief Function to send a file over bluetooth
          * 
          * @param fSend File that is to be sent

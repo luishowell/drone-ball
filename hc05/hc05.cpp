@@ -50,6 +50,13 @@ void hc05::sendCharacter(char toSend)
 }
 
 
+//send a float
+void hc05::sendFloat(float toSend)
+{
+    //send the float to the serial port
+    this->m_bt->printf("%f", toSend);
+}
+
 //send a file
 void hc05::sendFile(FILE *fSend)
 {
