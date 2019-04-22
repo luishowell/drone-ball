@@ -54,8 +54,9 @@ void hc05::sendCharacter(char toSend)
 void hc05::sendFloat(float toSend)
 {
     //send the float to the serial port
-    this->m_bt->printf("%f", toSend);
+    this->m_bt->printf("%3.2f", toSend);
 }
+
 
 //send a file
 void hc05::sendFile(FILE *fSend)
@@ -67,8 +68,9 @@ void hc05::sendFile(FILE *fSend)
     char buff[1] = {0};
 	while (!feof(fSend)){
 		int size = fread(&buff[0], 1, 1, fSend);
+        this->m_bt->printf("%c",buff[0]);
         if(this->pcConnected == true){
-            this->m_bt->printf("%c",buff[0]);
+            this->m_pc->printf("%c",buff[0]);
         }
 	}
 
