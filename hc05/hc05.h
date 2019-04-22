@@ -13,6 +13,7 @@
 #define hc05__
 
 #include "mbed-os/mbed.h"
+#include <string>
 
 class hc05
 {
@@ -64,6 +65,13 @@ class hc05
          * @param fSend File that is to be sent
          */
         void sendFile(FILE *fSend);
+
+        /**
+         * @brief Function to receive a filename of give type
+         * 
+         * @param extension String containing the desired file extension to look for
+         */
+        string receiveFilename(string extension);
 
         //bluetooth object
         RawSerial *m_bt;        

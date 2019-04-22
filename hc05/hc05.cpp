@@ -75,3 +75,27 @@ void hc05::sendFile(FILE *fSend)
 	}
 
 }
+
+
+//receive a filename
+string hc05::receiveFilename(string extension)
+{
+    if(this->pcConnected == true){
+        this->m_pc->printf("Receiving the filename\n");
+    }
+    char buff;
+    bool complete = false;
+    string filename = "";
+    while(complete == false)
+    {
+        buff = this->readCharacter();
+        filename += buff;
+
+        //check if the filename contains the extension
+        if(filename.find(extension) != std::string::npos){
+            complete = true;
+        }
+    }
+    return filename;
+
+}
