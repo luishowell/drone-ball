@@ -1,6 +1,6 @@
-BUILD/
-mbed-os/
-mbed_settings.py
-mbed_settings.pyc
-*.mbed
-*.lib
+.build
+.mbed
+projectfiles
+*.py*
+mbed-os
+BUILD
