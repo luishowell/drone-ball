@@ -10,13 +10,13 @@ class Stepper {
     Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2, PinName motor_pin_3, PinName motor_pin_4, PinName motor_en_pin_1, PinName motor_en_pin_2);
 
     // speed setter method:
-    void setSpeed(long whatSpeed);
+    void setSpeed(int whatSpeed);
 
     // mover method:
     void step(int number_of_steps);
 
     // accelerate or deccelerate the stepper, ramp time in s, speeds in rpm, dir 1 or -1 for direction
-    void ramp_speed(int start_speed, int end_speed, int dir = -1, float ramp_time = 5.0, int speed_steps = 40); 
+    void ramp_speed(int start_speed, int end_speed, int dir); 
 
     //enable or disable the motor
     void enable_motor(bool enable);
@@ -25,7 +25,7 @@ class Stepper {
     void stepMotor(int this_step);
 
     //retuns step delay in us
-    long calc_step_delay(long whatSpeed);
+    long calc_step_delay(int whatSpeed);
 
     int direction;            // Direction of rotation
     long step_delay;          // delay between steps, in us, based on speed

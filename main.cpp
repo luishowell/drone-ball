@@ -7,7 +7,7 @@
 #include "mux.hpp"
 #include <string>
 
-#define STRIP_LENGTH 144
+#define STRIP_LENGTH 120
 #define DISPLAY_STEPS 200
 #define STRIP_NUMBER 4
 
@@ -24,7 +24,7 @@ Ticker adc_ticker;
 EventQueue queue;
 
 DigitalOut warning_led(LED1);
-AnalogIn battery_voltage_ain(PA_3);
+AnalogIn battery_voltage_ain(PA_0);
 bool run_flag = true;
 
 
@@ -49,7 +49,16 @@ void battery_isr()
 
 int main()
 {
-	Stepper stepper_motor(200, PD_4, PD_5, PD_6, PD_7, PG_2, PG_3); //input 1,2,3,4,en1,en2
+	led_strip.level(10);
+	led_strip.setFrequency(32000000);
+	// ensure all led strips are clear
+	for (int i=0; i<4; i++)
+	{
+		mux.set_output(i);
+		led_strip.clear();
+	}	
+
+	Stepper stepper_motor(200, PD_4, PD_5, PG_3, PG_2, PD_6, PD_7); //input 1,2,3,4,en1,en2
 
 	pc.printf("Started!\n");
 	
@@ -57,9 +66,6 @@ int main()
 	Thread eventThread;
 	eventThread.start(callback(&queue, &EventQueue::dispatch_forever));
 	adc_ticker.attach(&battery_isr, 2.0); //check battery voltage every 2 seconds for under voltage
-
-	led_strip.level(4);
-	led_strip.setFrequency(32000000);
 
 	pc.printf("\nOpening default image\n");
 	bitmap_image image("/sd/default.bmp");
@@ -74,6 +80,8 @@ int main()
 	
 	int display_counter[STRIP_NUMBER] = {0,0,0,0};
 	unsigned int strip_array[STRIP_LENGTH];
+
+	stepper_motor.ramp_speed(0, 100, -1);
 
 	while(run_flag)
 	{

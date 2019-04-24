@@ -56,6 +56,15 @@ public:
       unsigned char  blue;
    };
 
+   bitmap_image()
+   : file_name_(""),
+     width_          (0),
+     height_         (0),
+     row_increment_  (0),
+     bytes_per_pixel_(0),
+     channel_mode_(bgr_mode)
+   {}
+
    bitmap_image(const std::string& filename)
    : file_name_(filename),
      width_          (0),

@@ -28,7 +28,7 @@ Stepper::Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2, 
 /*
 * Sets the speed in revs per minute
 */
-void Stepper::setSpeed(long whatSpeed)
+void Stepper::setSpeed(int whatSpeed)
 {
     if (whatSpeed<1)
     {
@@ -37,21 +37,27 @@ void Stepper::setSpeed(long whatSpeed)
     this->step_delay = 60L * 1000L * 1000L / this->number_of_steps / whatSpeed;
 }
 
-long Stepper::calc_step_delay(long whatSpeed)
+long Stepper::calc_step_delay(int whatSpeed)
 {
+    if (whatSpeed<1)
+    {
+        whatSpeed = 1;
+    }  
     return 60L * 1000L * 1000L / this->number_of_steps / whatSpeed;
 }
 
-void Stepper::ramp_speed(int start_speed, int end_speed, int dir, float ramp_time, int speed_steps)
+void Stepper::ramp_speed(int start_speed, int end_speed, int dir)
 {
-    int speed_inc = (end_speed-start_speed)/speed_steps;
-    if (speed_inc<1)
-    {
-        speed_inc = 1;
-    }
+    int speed_diff = end_speed-start_speed;
+
+    float ramp_time = abs(speed_diff)*0.05;
+
+    int speed_steps = int(ramp_time/0.5);
+    if (speed_steps<1){speed_steps=1;}
+
+    int speed_inc = speed_diff/speed_steps;
+
     long inc_time = static_cast<long>((ramp_time*1000*1000)/speed_steps); //in us
-    int new_speed = start_speed;
-    int num_steps = 0;
 
     if (dir>0)
     {
@@ -62,6 +68,8 @@ void Stepper::ramp_speed(int start_speed, int end_speed, int dir, float ramp_tim
         dir = -1;
     }    
 
+    int new_speed = start_speed;
+    int num_steps = 0;
     for (int i=0; i<speed_steps; i++)
     {
         new_speed = new_speed + speed_inc;

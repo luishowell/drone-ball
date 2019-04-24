@@ -50,6 +50,7 @@ void apa102::clear(void)
         spi_class.fastWrite(0xE000);
         spi_class.fastWrite(0x0000);
     }
+    
     this->send_end_frame();
 }
 //------------------------------------------------------------------------------------------------------------
@@ -71,10 +72,13 @@ inline void apa102::send_start_frame()
 
 inline void apa102::send_end_frame() 
 {
+    // A SK9822 reset frame of 32 zero bits (<0x00> <0x00> <0x00> <0x00> ).
     spi_class.fastWrite(0x0000);
     spi_class.fastWrite(0x0000);
 
-    int end_frames = _STRIP_LENGTH/16.0;
+    // An end frame consisting of at least (n/2) bits of 0, where n is the number of LEDs in the string.
+    int end_bits = int((_STRIP_LENGTH/2.0)+0.5);
+    int end_frames = int((end_bits/16.0)+0.5);
 
     for (int i=0;i<end_frames;i++)
     {
