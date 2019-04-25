@@ -17,9 +17,6 @@ Stepper::Stepper(int number_of_steps, PinName motor_pin_1, PinName motor_pin_2, 
     this->motor_en_1 = 1;
     this->motor_en_2 = 1;
 
-    // pin_count is used by the stepMotor() method:
-    this->pin_count = 4;
-
     this->setSpeed(1);
 
     step_timer.start();
@@ -50,7 +47,7 @@ void Stepper::ramp_speed(int start_speed, int end_speed, int dir)
 {
     int speed_diff = end_speed-start_speed;
 
-    float ramp_time = abs(speed_diff)*0.05;
+    float ramp_time = abs(speed_diff)*0.06;
 
     int speed_steps = int(ramp_time/0.5);
     if (speed_steps<1){speed_steps=1;}
@@ -73,6 +70,13 @@ void Stepper::ramp_speed(int start_speed, int end_speed, int dir)
     for (int i=0; i<speed_steps; i++)
     {
         new_speed = new_speed + speed_inc;
+
+        // new motor bodge
+        if ((new_speed>40)&&(new_speed<80)&&(end_speed>=80))
+        {
+            new_speed = 80;
+        }
+
         num_steps = inc_time/calc_step_delay(new_speed);
         if (num_steps<1)
         {
@@ -82,8 +86,7 @@ void Stepper::ramp_speed(int start_speed, int end_speed, int dir)
         this->step(dir*num_steps);
     }
 
-    this->setSpeed(end_speed);
-    this->step(-this->number_of_steps);
+    this->setSpeed(end_speed);   
 }
 
 void Stepper::enable_motor(bool enable)
@@ -125,7 +128,8 @@ void Stepper::step(int steps_to_move)
         
         if (step_timer.read_us() >= this->step_delay)
         {
-            //pc.printf("%i\n", step_timer.read_us());
+            step_timer.stop();
+            step_timer.reset();
          
             // increment or decrement the step number,
             // depending on direction:
@@ -147,13 +151,11 @@ void Stepper::step(int steps_to_move)
             }
             // decrement the steps left:
             steps_left--;
-            // step the motor to step number 0, 1, ..., {3 or 10}
-            step_timer.stop();
-            step_timer.reset();
-            step_timer.start();
 
+            // step the motor to step number 0, 1, ..., {3 or 10}         
             stepMotor(this->step_number % 4);    
 
+            step_timer.start();
         }
     }
 }
@@ -163,44 +165,31 @@ void Stepper::step(int steps_to_move)
 */
 void Stepper::stepMotor(int thisStep)
 {
-    /*
-    * The sequence of control signals for 4 control wires is as follows:
-    *
-    * Step C0 C1 C2 C3
-    *    1  1  0  1  0
-    *    2  0  1  1  0
-    *    3  0  1  0  1
-    *    4  1  0  0  1
-    *
-    */
-    if (this->pin_count == 4)
+    switch (thisStep)
     {
-        switch (thisStep)
-        {
-        case 0: // 1010
-            this->motor_1 = 1;
-            this->motor_2 = 0;
-            this->motor_3 = 1;
-            this->motor_4 = 0;
-            break;
-        case 1: // 0110
-            this->motor_1 = 0;
-            this->motor_2 = 1;
-            this->motor_3 = 1;
-            this->motor_4 = 0;
-            break;
-        case 2: //0101
-            this->motor_1 = 0;
-            this->motor_2 = 1;
-            this->motor_3 = 0;
-            this->motor_4 = 1;
-            break;
-        case 3: //1001
-            this->motor_1 = 1;
-            this->motor_2 = 0;
-            this->motor_3 = 0;
-            this->motor_4 = 1;
-            break;
-        }
-    }
+    case 0: // 0110
+        this->motor_1 = 0;
+        this->motor_2 = 1;
+        this->motor_3 = 1;
+        this->motor_4 = 0;
+        break;
+    case 1: //0101
+        this->motor_1 = 0;
+        this->motor_2 = 1;
+        this->motor_3 = 0;
+        this->motor_4 = 1;
+        break;
+    case 2: //1001
+        this->motor_1 = 1;
+        this->motor_2 = 0;
+        this->motor_3 = 0;
+        this->motor_4 = 1;
+        break;
+    case 3: // 1010
+        this->motor_1 = 1;
+        this->motor_2 = 0;
+        this->motor_3 = 1;
+        this->motor_4 = 0;
+        break;
+    }    
 }

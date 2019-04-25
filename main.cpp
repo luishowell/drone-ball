@@ -30,7 +30,7 @@ bool run_flag = true;
 
 void voltage_check()
 {
-	float voltage_div_factor = 17.0/3.3;
+	float voltage_div_factor = 1.055/0.18;
 	float min_battery_voltage = 13.5;
 
 	float battery_voltage = battery_voltage_ain*3.3*voltage_div_factor;
@@ -38,7 +38,7 @@ void voltage_check()
 	if (battery_voltage<min_battery_voltage)
 	{
 		warning_led = 1;		
-		//run_flag = false;
+		run_flag = false;
 	}	
 }
 void battery_isr()
@@ -49,6 +49,8 @@ void battery_isr()
 
 int main()
 {
+	pc.printf("Started!\n");
+
 	led_strip.level(10);
 	led_strip.setFrequency(32000000);
 	// ensure all led strips are clear
@@ -59,8 +61,6 @@ int main()
 	}	
 
 	Stepper stepper_motor(200, PD_4, PD_5, PG_3, PG_2, PD_6, PD_7); //input 1,2,3,4,en1,en2
-
-	pc.printf("Started!\n");
 	
 	warning_led = 0;
 	Thread eventThread;
@@ -81,7 +81,8 @@ int main()
 	int display_counter[STRIP_NUMBER] = {0,0,0,0};
 	unsigned int strip_array[STRIP_LENGTH];
 
-	stepper_motor.ramp_speed(0, 100, -1);
+	int dir = 1;
+	stepper_motor.ramp_speed(0, 200, dir);
 
 	while(run_flag)
 	{
@@ -105,7 +106,7 @@ int main()
 			led_strip.post(strip_array);
 		}
 
-		stepper_motor.step(-1);
+		stepper_motor.step(dir);
 		display_counter[0]++;
 	}
 
