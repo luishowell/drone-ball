@@ -32,7 +32,7 @@ apa102 led_strip(PF_7, PF_9, PF_8, STRIP_LENGTH);	//sclk, mosi, miso SPI5
 Mux mux(PE_3, PE_6); // A, B
 
 //setup bluetooth module
-hc05 bt(p13, p14, &pc);
+hc05 bt(PB_10, PB_11, &pc); //tx, rx: UART3, serial pc
 DigitalOut bt_led(LED2);
 
 DigitalOut warning_led(LED1);
@@ -164,10 +164,10 @@ int main()
 
     //setup the sd card
     sdPins_t sdPins;
-    sdPins.MOSI = p5;
-    sdPins.MISO = p6;
-    sdPins.SCLK = p7;
-    sdPins.CS = p8;
+    sdPins.MOSI = PC_12;
+    sdPins.MISO = PC_11;
+    sdPins.SCLK = PC_10;
+    sdPins.CS = PD_2;
 
     sd = new SDFileSystem(sdPins, &pc);
     sd->getDirectory("/sd/LoadedImages");
@@ -176,7 +176,7 @@ int main()
     FILE *testFile;
     testFile = sd->getBmpFileList("/sd/LoadedImages");//, testFile);
 
-	bitmap_image image();
+	bitmap_image image;
 
 
 	pc.printf("\nOpening default image\n");

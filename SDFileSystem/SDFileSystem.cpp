@@ -125,8 +125,7 @@ void SDFileSystem::getDirectory(const char * path)
 //change the bitmap to given file
 void SDFileSystem::changeImage(bitmap_image& image, std::string filename)
 {
-    image.file_name_ = filename;
-    image.load_bitmap();
+    image.change_image(filename);
 }
 
 //return error function
