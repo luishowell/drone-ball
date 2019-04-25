@@ -1,0 +1,27 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven'
+apply plugin: 'signing'
+//apply from: '../.publishing/sonatype.gradle'
+
+archivesBaseName = 'androisd-crop'
+
+android {
+    compileSdkVersion 19
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 19
+
+        testApplicationId 'com.soundcloud.android.crop.test'
+        testInstrumentationRunner 'android.test.InstrumentationTestRunner'
+    }
+}
+
+dependencies {
+    androidTestImplementation 'com.squareup:fest-android:1.0.7'
+    androidTestImplementation 'com.android.support:support-v4:19.1.0'
+    androidTestImplementation 'org.mockito:mockito-core:1.9.5'
+    androidTestImplementation 'com.google.dexmaker:dexmaker:1.0'
+    androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.0'
+}
+

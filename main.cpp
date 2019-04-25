@@ -1,31 +1,60 @@
-#include "mbed.h"
-#include "FATFileSystem.h"	//SD card
-#include "SDBlockDevice.h"	//SD card
+#include "mbed-os/mbed.h"
+
+//#include "FATFileSystem.h"	//SD card
+//#include "SDBlockDevice.h"	//SD card
+#include "SDFileSystem.h"
+#include "hc05.h"
 #include "bitmap_image.hpp"	//bitmap lib
 #include "apa102.h"	//LED strip driver
 #include "stepper.hpp"
 #include "mux.hpp"
 #include <string>
+#include <stdio.h>
+#include <errno.h> 
 
 #define STRIP_LENGTH 120
 #define DISPLAY_STEPS 200
 #define STRIP_NUMBER 4
 
-Serial pc(USBTX, USBRX); // tx, rx
+//appCode defines
+#define startDisplayCode 0x10
+#define stopDisplayCode 0x21
+#define requestFilesCode 0x32
+#define selectImageCode 0x43
+#define sendImageCode 0x54
+#define setRotationCode 0x65
+#define sendTestCode 0xFF
 
-SDBlockDevice sd(PC_12, PC_11, PC_10, PD_2); //SPI3
-FATFileSystem fs("sd", &sd);
+RawSerial pc(USBTX, USBRX); // tx, rx
 
 apa102 led_strip(PF_7, PF_9, PF_8, STRIP_LENGTH);	//sclk, mosi, miso SPI5
 
 Mux mux(PE_3, PE_6); // A, B
 
-Ticker adc_ticker;
-EventQueue queue;
+//setup bluetooth module
+hc05 bt(p13, p14, &pc);
+DigitalOut bt_led(LED2);
 
 DigitalOut warning_led(LED1);
 AnalogIn battery_voltage_ain(PA_0);
+
+//This is used for the adc monitioring
+Ticker adc_ticker;
+//create an event queue
+EventQueue queue(32 * EVENTS_EVENT_SIZE);
+EventQueue queueVoltage;
+
+//sd card declaration
+// SDBlockDevice sd(PC_12, PC_11, PC_10, PD_2); //SPI3
+// FATFileSystem fs("sd", &sd);
+SDFileSystem *sd;
+
+//boolean to indicate another transfer is ongoing
+bool btSendOngoing = false;
 bool run_flag = true;
+char appCode;
+
+void interperetCommand();
 
 
 void voltage_check()
@@ -33,7 +62,16 @@ void voltage_check()
 	float voltage_div_factor = 1.055/0.18;
 	float min_battery_voltage = 13.5;
 
-	float battery_voltage = battery_voltage_ain*3.3*voltage_div_factor;
+	float battery_voltage = battery_voltage_ain.read()*3.3*voltage_div_factor;
+
+    //send the voltage over bluetooth to the app unless the file list is being transferred
+    if(btSendOngoing == false){
+        btSendOngoing = true;
+        bt.sendCharacter('#'); //start character 
+        bt.sendFloat(battery_voltage); //battery voltage
+        bt.sendCharacter('~'); //end char 
+        btSendOngoing = false;
+    }
 
 	if (battery_voltage<min_battery_voltage)
 	{
@@ -46,10 +84,58 @@ void battery_isr()
 	queue.call(&voltage_check);
 }
 
+void do_something(){
+    bt_led = !bt_led;
+    appCode = bt.readCharacter();
+    queue.call(&interperetCommand);
+}
+
+void interperetCommand() {
+    char savedAppCode = appCode;
+    pc.printf("text received 0x%x\n\r", savedAppCode);
+    switch(savedAppCode){
+        case startDisplayCode : pc.printf("Start the display\n\r");
+                    break; 
+        case stopDisplayCode : pc.printf("Stop the display\n\r");
+                    break; 
+        case requestFilesCode : pc.printf("Request file list\n\r");
+                    FILE *fileList;
+                    fileList = sd->getBmpFileList("/sd/LoadedImages");
+                    //while(btSendOngoing == true){
+                    //    pc.printf("Waiting on ticker\n");
+                    //}
+                    btSendOngoing = true;
+                    bt.sendCharacter('!'); //start char
+                    bt.sendFile(fileList); //the actual file 
+                    bt.sendCharacter('~'); //end char
+                    btSendOngoing = false;
+
+                    break; 
+        case selectImageCode : pc.printf("Select image from file list\n\r");
+                    break; 
+        case sendImageCode :{ pc.printf("Sending new image\n\r");
+                    bt.m_bt->attach(0); //detach the interrupt
+                    string filename = bt.receiveFilename(".bmp");
+                    pc.printf("Filename is: %s\n", filename.c_str());
+                    bt.m_bt->attach(do_something); //reattach the interrupt
+                    break; }
+        case setRotationCode :{ pc.printf("Set rotation speed\n\r");
+                    bt.m_bt->attach(0); // detatch the interrupt
+                    char rpm = bt.readCharacter(); //read the next character 
+                    pc.printf("Rotation speed is: 0x%x\n", rpm); //print the character 
+                    bt.m_bt->attach(do_something); //reattach the interrupt
+                    break; }
+        case sendTestCode : pc.printf("Send test code\r\n");
+                    break;
+        default : pc.printf("Unknown code: 0x%x\n\r", savedAppCode);
+                    break; 
+    }
+}
+
 
 int main()
 {
-	pc.printf("Started!\n");
+	pc.printf("\n\nStarted!\n");
 
 	led_strip.level(10);
 	led_strip.setFrequency(32000000);
@@ -61,14 +147,40 @@ int main()
 	}	
 
 	Stepper stepper_motor(200, PD_4, PD_5, PG_3, PG_2, PD_6, PD_7); //input 1,2,3,4,en1,en2
-	
-	warning_led = 0;
-	Thread eventThread;
-	eventThread.start(callback(&queue, &EventQueue::dispatch_forever));
+
+    //create thread that'll run the event queue's dispatch function
+    Thread eventThread;
+    eventThread.start(callback(&queue, &EventQueue::dispatch_forever));
+
+    //attach the adc interrupt
+    warning_led = 0;
+	Thread adcThread;
+	adcThread.start(callback(&queueVoltage, &EventQueue::dispatch_forever));
 	adc_ticker.attach(&battery_isr, 2.0); //check battery voltage every 2 seconds for under voltage
 
+    //wrap calls in queue event to automatically defer to the queue's thread
+    bt.m_bt->attach(do_something);	
+	bt_led = 0;
+
+    //setup the sd card
+    sdPins_t sdPins;
+    sdPins.MOSI = p5;
+    sdPins.MISO = p6;
+    sdPins.SCLK = p7;
+    sdPins.CS = p8;
+
+    sd = new SDFileSystem(sdPins, &pc);
+    sd->getDirectory("/sd/LoadedImages");
+
+    //check that the file is returned properly
+    FILE *testFile;
+    testFile = sd->getBmpFileList("/sd/LoadedImages");//, testFile);
+
+	bitmap_image image();
+
+
 	pc.printf("\nOpening default image\n");
-	bitmap_image image("/sd/default.bmp");
+	sd->changeImage(image, "/sd/default.bmp");
 	
 	if (!image)
 	{		
