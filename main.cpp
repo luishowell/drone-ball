@@ -15,6 +15,7 @@
 #define STRIP_LENGTH 120
 #define DISPLAY_STEPS 200
 #define STRIP_NUMBER 4
+#define MAX_RPM 350
 
 //appCode defines
 #define startDisplayCode 0x10
@@ -32,7 +33,7 @@ apa102 led_strip(PF_7, PF_9, PF_8, STRIP_LENGTH);	//sclk, mosi, miso SPI5
 Mux mux(PE_3, PE_6); // A, B
 
 //setup bluetooth module
-hc05 bt(PB_10, PB_11, &pc); //tx, rx: UART3, serial pc
+hc05 bt(PE_8, PE_7, &pc); //tx, rx: UART3, serial pc
 DigitalOut bt_led(LED2);
 
 DigitalOut warning_led(LED1);
@@ -63,6 +64,7 @@ void voltage_check()
 	float min_battery_voltage = 13.5;
 
 	float battery_voltage = battery_voltage_ain.read()*3.3*voltage_div_factor;
+	//pc.printf("Battery Voltage: %.2f\n", battery_voltage);
 
     //send the voltage over bluetooth to the app unless the file list is being transferred
     if(btSendOngoing == false){
@@ -76,7 +78,7 @@ void voltage_check()
 	if (battery_voltage<min_battery_voltage)
 	{
 		warning_led = 1;		
-		run_flag = false;
+		//run_flag = false;
 	}	
 }
 void battery_isr()
@@ -97,6 +99,7 @@ void interperetCommand() {
         case startDisplayCode : pc.printf("Start the display\n\r");
                     break; 
         case stopDisplayCode : pc.printf("Stop the display\n\r");
+					run_flag = false;
                     break; 
         case requestFilesCode : pc.printf("Request file list\n\r");
                     FILE *fileList;
@@ -111,8 +114,12 @@ void interperetCommand() {
                     btSendOngoing = false;
 
                     break; 
-        case selectImageCode : pc.printf("Select image from file list\n\r");
-                    break; 
+        case selectImageCode :{ 
+					pc.printf("Select image from file list\n\r");
+					bt.m_bt->attach(0); //detach the interrupt
+					char selected_file = bt.readCharacter();
+					bt.m_bt->attach(do_something); //reattach the interrupt
+                    break;} 
         case sendImageCode :{ pc.printf("Sending new image\n\r");
                     bt.m_bt->attach(0); //detach the interrupt
                     string filename = bt.receiveFilename(".bmp");
@@ -121,8 +128,9 @@ void interperetCommand() {
                     break; }
         case setRotationCode :{ pc.printf("Set rotation speed\n\r");
                     bt.m_bt->attach(0); // detatch the interrupt
-                    char rpm = bt.readCharacter(); //read the next character 
-                    pc.printf("Rotation speed is: 0x%x\n", rpm); //print the character 
+                    char char_rpm = bt.readCharacter(); //read the next character 
+					int int_rpm = (int(char_rpm)*MAX_RPM)/100;
+                    pc.printf("Rotation speed is: %i\n", int_rpm); //print the character 
                     bt.m_bt->attach(do_something); //reattach the interrupt
                     break; }
         case sendTestCode : pc.printf("Send test code\r\n");
@@ -172,10 +180,6 @@ int main()
     sd = new SDFileSystem(sdPins, &pc);
     sd->getDirectory("/sd/LoadedImages");
 
-    //check that the file is returned properly
-    FILE *testFile;
-    testFile = sd->getBmpFileList("/sd/LoadedImages");//, testFile);
-
 	bitmap_image image;
 
 
@@ -221,6 +225,8 @@ int main()
 		stepper_motor.step(dir);
 		display_counter[0]++;
 	}
+
+	pc.printf("\nOFF!\n");
 
 	// turn off leds
 	for (int i=0; i<4; i++)
