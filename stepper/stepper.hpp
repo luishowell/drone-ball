@@ -21,6 +21,8 @@ class Stepper {
     //enable or disable the motor
     void enable_motor(bool enable);
 
+    int current_speed;
+
   private:
     void stepMotor(int this_step);
 

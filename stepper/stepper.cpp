@@ -32,6 +32,7 @@ void Stepper::setSpeed(int whatSpeed)
         whatSpeed = 1;
     }
     this->step_delay = 60L * 1000L * 1000L / this->number_of_steps / whatSpeed;
+    current_speed = whatSpeed;
 }
 
 long Stepper::calc_step_delay(int whatSpeed)

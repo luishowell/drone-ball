@@ -16,6 +16,7 @@
 #define DISPLAY_STEPS 200
 #define STRIP_NUMBER 4
 #define MAX_RPM 350
+#define RUNTIME 30
 
 //appCode defines
 #define startDisplayCode 0x10
@@ -45,6 +46,8 @@ Ticker adc_ticker;
 EventQueue queue(32 * EVENTS_EVENT_SIZE);
 EventQueue queueVoltage;
 
+Timer run_timer;
+
 //sd card declaration
 // SDBlockDevice sd(PC_12, PC_11, PC_10, PD_2); //SPI3
 // FATFileSystem fs("sd", &sd);
@@ -52,8 +55,10 @@ SDFileSystem *sd;
 
 //boolean to indicate another transfer is ongoing
 bool btSendOngoing = false;
-bool run_flag = true;
+bool run_req = false;
+bool stop = false;
 char appCode;
+int rpm_req = 1;
 
 void interperetCommand();
 
@@ -78,7 +83,7 @@ void voltage_check()
 	if (battery_voltage<min_battery_voltage)
 	{
 		warning_led = 1;		
-		//run_flag = false;
+		// stop = true;
 	}	
 }
 void battery_isr()
@@ -86,57 +91,83 @@ void battery_isr()
 	queue.call(&voltage_check);
 }
 
-void do_something(){
+void bt_isr()
+{
     bt_led = !bt_led;
     appCode = bt.readCharacter();
     queue.call(&interperetCommand);
 }
 
-void interperetCommand() {
+void interperetCommand() 
+{
     char savedAppCode = appCode;
     pc.printf("text received 0x%x\n\r", savedAppCode);
-    switch(savedAppCode){
-        case startDisplayCode : pc.printf("Start the display\n\r");
-                    break; 
-        case stopDisplayCode : pc.printf("Stop the display\n\r");
-					run_flag = false;
-                    break; 
-        case requestFilesCode : pc.printf("Request file list\n\r");
-                    FILE *fileList;
-                    fileList = sd->getBmpFileList("/sd/LoadedImages");
-                    //while(btSendOngoing == true){
-                    //    pc.printf("Waiting on ticker\n");
-                    //}
-                    btSendOngoing = true;
-                    bt.sendCharacter('!'); //start char
-                    bt.sendFile(fileList); //the actual file 
-                    bt.sendCharacter('~'); //end char
-                    btSendOngoing = false;
-
-                    break; 
-        case selectImageCode :{ 
-					pc.printf("Select image from file list\n\r");
-					bt.m_bt->attach(0); //detach the interrupt
-					char selected_file = bt.readCharacter();
-					bt.m_bt->attach(do_something); //reattach the interrupt
-                    break;} 
-        case sendImageCode :{ pc.printf("Sending new image\n\r");
-                    bt.m_bt->attach(0); //detach the interrupt
-                    string filename = bt.receiveFilename(".bmp");
-                    pc.printf("Filename is: %s\n", filename.c_str());
-                    bt.m_bt->attach(do_something); //reattach the interrupt
-                    break; }
-        case setRotationCode :{ pc.printf("Set rotation speed\n\r");
-                    bt.m_bt->attach(0); // detatch the interrupt
-                    char char_rpm = bt.readCharacter(); //read the next character 
-					int int_rpm = (int(char_rpm)*MAX_RPM)/100;
-                    pc.printf("Rotation speed is: %i\n", int_rpm); //print the character 
-                    bt.m_bt->attach(do_something); //reattach the interrupt
-                    break; }
-        case sendTestCode : pc.printf("Send test code\r\n");
-                    break;
-        default : pc.printf("Unknown code: 0x%x\n\r", savedAppCode);
-                    break; 
+    switch(savedAppCode)
+	{
+        case startDisplayCode: 
+		{
+			pc.printf("Start the display\n\r");
+			run_req = true;
+            break; 
+		}
+        case stopDisplayCode:
+		{
+			pc.printf("Stop the display\n\r");
+			run_req = false;
+            break; 
+		}
+        case requestFilesCode: 
+		{
+			pc.printf("Request file list\n\r");
+			FILE *fileList;
+			fileList = sd->getBmpFileList("/sd/LoadedImages");
+			//while(btSendOngoing == true){
+			//    pc.printf("Waiting on ticker\n");
+			//}
+			btSendOngoing = true;
+			bt.sendCharacter('!'); //start char
+			bt.sendFile(fileList); //the actual file 
+			bt.sendCharacter('~'); //end char
+			btSendOngoing = false;
+			break; 
+		}
+        case selectImageCode:
+		{ 
+			pc.printf("Select image from file list\n\r");
+			bt.m_bt->attach(0); //detach the interrupt
+			char selected_file = bt.readCharacter();
+			bt.m_bt->attach(bt_isr); //reattach the interrupt
+			break;
+		} 
+        case sendImageCode:
+		{ 
+			pc.printf("Sending new image\n\r");
+			bt.m_bt->attach(0); //detach the interrupt
+			string filename = bt.receiveFilename(".bmp");
+			pc.printf("Filename is: %s\n", filename.c_str());
+			bt.m_bt->attach(bt_isr); //reattach the interrupt
+			break; 
+		}
+        case setRotationCode:
+		{ 	
+			pc.printf("Set rotation speed\n\r");
+			bt.m_bt->attach(0); // detatch the interrupt
+			char char_rpm = bt.readCharacter(); //read the next character 
+			int rpm_req = (int(char_rpm)*MAX_RPM)/100;
+			pc.printf("Rotation speed is: %i\n", rpm_req); //print the character 
+			bt.m_bt->attach(bt_isr); //reattach the interrupt
+			break; 
+		}
+        case sendTestCode: 
+		{
+			pc.printf("Send test code\r\n");
+            break;
+		}
+        default:
+		{
+			pc.printf("Unknown code: 0x%x\n\r", savedAppCode);
+            break; 
+		}
     }
 }
 
@@ -155,6 +186,7 @@ int main()
 	}	
 
 	Stepper stepper_motor(200, PD_4, PD_5, PG_3, PG_2, PD_6, PD_7); //input 1,2,3,4,en1,en2
+	stepper_motor.enable_motor(false);
 
     //create thread that'll run the event queue's dispatch function
     Thread eventThread;
@@ -167,7 +199,7 @@ int main()
 	adc_ticker.attach(&battery_isr, 2.0); //check battery voltage every 2 seconds for under voltage
 
     //wrap calls in queue event to automatically defer to the queue's thread
-    bt.m_bt->attach(do_something);	
+    bt.m_bt->attach(bt_isr);	
 	bt_led = 0;
 
     //setup the sd card
@@ -181,7 +213,6 @@ int main()
     sd->getDirectory("/sd/LoadedImages");
 
 	bitmap_image image;
-
 
 	pc.printf("\nOpening default image\n");
 	sd->changeImage(image, "/sd/default.bmp");
@@ -198,32 +229,60 @@ int main()
 	unsigned int strip_array[STRIP_LENGTH];
 
 	int dir = 1;
-	stepper_motor.ramp_speed(0, 200, dir);
 
-	while(run_flag)
+	while(!stop)
 	{
-		if (display_counter[0]==DISPLAY_STEPS)
+		if (run_req)
 		{
-			display_counter[0]=0;
-		}
-		for (int i=1; i<STRIP_NUMBER; i++)
-		{
-			display_counter[i] = display_counter[0] + ((DISPLAY_STEPS/STRIP_NUMBER)*i);
-			if (display_counter[i]>=DISPLAY_STEPS)
+			stepper_motor.enable_motor(true);
+			stepper_motor.ramp_speed(0, rpm_req, dir);
+			run_timer.start();
+
+			while(run_req && (run_timer<RUNTIME) && !stop)
 			{
-				display_counter[i] = display_counter[i] - DISPLAY_STEPS;
+				if (display_counter[0]==DISPLAY_STEPS)
+				{
+					display_counter[0]=0;
+				}
+				for (int i=1; i<STRIP_NUMBER; i++)
+				{
+					display_counter[i] = display_counter[0] + ((DISPLAY_STEPS/STRIP_NUMBER)*i);
+					if (display_counter[i]>=DISPLAY_STEPS)
+					{
+						display_counter[i] = display_counter[i] - DISPLAY_STEPS;
+					}
+				}
+
+				for (int i=0; i<4; i++)
+				{
+					image.fill_array_rgb(strip_array, display_counter[i], STRIP_LENGTH);
+					mux.set_output(i);
+					led_strip.post(strip_array);
+				}
+
+				stepper_motor.step(dir);
+				display_counter[0]++;
+
+				if (stepper_motor.current_speed != rpm_req)
+				{
+					stepper_motor.ramp_speed(stepper_motor.current_speed, rpm_req, dir);			
+				}
 			}
-		}
 
-		for (int i=0; i<4; i++)
-		{
-			image.fill_array_rgb(strip_array, display_counter[i], STRIP_LENGTH);
-			mux.set_output(i);
-			led_strip.post(strip_array);
-		}
+			// turn off leds
+			for (int i=0; i<4; i++)
+			{
+				mux.set_output(i);
+				led_strip.clear();
+			}	
+			// turn off stepper motor
+			stepper_motor.enable_motor(false);
+			wait(2);
 
-		stepper_motor.step(dir);
-		display_counter[0]++;
+			run_timer.stop();
+			run_timer.reset();
+			run_req = false;
+		}
 	}
 
 	pc.printf("\nOFF!\n");
