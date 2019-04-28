@@ -85,7 +85,7 @@ void voltage_check()
 	if (battery_voltage<min_battery_voltage)
 	{
 		warning_led = 1;		
-		// stop = true;
+		stop = true;
 	}	
 }
 void battery_isr()
@@ -187,7 +187,7 @@ int main()
 	led_strip.level(10);
 	led_strip.setFrequency(32000000);
 	// ensure all led strips are clear
-	for (int i=0; i<4; i++)
+	for (int i=0; i<STRIP_NUMBER; i++)
 	{
 		mux.set_output(i);
 		led_strip.clear();
@@ -241,6 +241,13 @@ int main()
 	while(!stop)
 	{
 		wait(0.1);
+
+		if (change_image)
+		{
+			sd->changeImage(image, image_path);
+			change_image = false;
+		}
+
 		if (run_req)
 		{
 			pc.printf("RUN START!\n");
@@ -264,7 +271,7 @@ int main()
 					}
 				}
 
-				for (int i=0; i<4; i++)
+				for (int i=0; i<STRIP_NUMBER; i++)
 				{
 					image.fill_array_rgb(strip_array, display_counter[i], STRIP_LENGTH);
 					mux.set_output(i);
@@ -289,7 +296,7 @@ int main()
 			pc.printf("RUN STOP!\n");
 
 			// turn off leds
-			for (int i=0; i<4; i++)
+			for (int i=0; i<STRIP_NUMBER; i++)
 			{
 				mux.set_output(i);
 				led_strip.clear();
@@ -307,7 +314,7 @@ int main()
 	pc.printf("\nOFF!\n");
 
 	// turn off leds
-	for (int i=0; i<4; i++)
+	for (int i=0; i<STRIP_NUMBER; i++)
 	{
 		mux.set_output(i);
 		led_strip.clear();
