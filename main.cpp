@@ -57,8 +57,10 @@ SDFileSystem *sd;
 bool btSendOngoing = false;
 bool run_req = false;
 bool stop = false;
+bool change_image = false;
 char appCode;
 int rpm_req = 1;
+std::string image_path = "/sd/LoadedImages/default.bmp";
 
 void interperetCommand();
 
@@ -136,6 +138,11 @@ void interperetCommand()
 			pc.printf("Select image from file list\n\r");
 			bt.m_bt->attach(0); //detach the interrupt
 			char selected_file = bt.readCharacter();
+			int file_req = int(selected_file);
+			std::string filename = sd->getSelectedFilename("/sd/bmpFiles.txt", file_req);
+			std::string fullPath = "/sd/LoadedImages/" + filename;
+			image_path = fullPath;
+			change_image = true;
 			bt.m_bt->attach(bt_isr); //reattach the interrupt
 			break;
 		} 
@@ -215,7 +222,7 @@ int main()
 	bitmap_image image;
 
 	pc.printf("\nOpening default image\n");
-	sd->changeImage(image, "/sd/default.bmp");
+	sd->changeImage(image, "/sd/LoadedImages/default.bmp");
 	
 	if (!image)
 	{		
@@ -266,6 +273,11 @@ int main()
 				if (stepper_motor.current_speed != rpm_req)
 				{
 					stepper_motor.ramp_speed(stepper_motor.current_speed, rpm_req, dir);			
+				}
+				if (change_image)
+				{
+					sd->changeImage(image, image_path);
+					change_image = false;
 				}
 			}
 

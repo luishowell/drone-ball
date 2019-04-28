@@ -7,3 +7,4 @@ mbed_settings.pyc
 *.bin
 *.ipch
 compile_commands.json
+.vscode/settings.json
