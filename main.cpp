@@ -144,6 +144,7 @@ void interperetCommand()
 			image_path = fullPath;
 			change_image = true;
 			bt.m_bt->attach(bt_isr); //reattach the interrupt
+			pc.printf("Image changed to : %s\n", image_path);
 			break;
 		} 
         case sendImageCode:
@@ -160,7 +161,7 @@ void interperetCommand()
 			pc.printf("Set rotation speed\n\r");
 			bt.m_bt->attach(0); // detatch the interrupt
 			char char_rpm = bt.readCharacter(); //read the next character 
-			int rpm_req = (int(char_rpm)*MAX_RPM)/100;
+			rpm_req = (int(char_rpm)*MAX_RPM)/100;
 			pc.printf("Rotation speed is: %i\n", rpm_req); //print the character 
 			bt.m_bt->attach(bt_isr); //reattach the interrupt
 			break; 
@@ -239,8 +240,11 @@ int main()
 
 	while(!stop)
 	{
+		wait(0.1);
 		if (run_req)
 		{
+			pc.printf("RUN START!\n");
+			pc.printf("RPM requested: %d\n", rpm_req);
 			stepper_motor.enable_motor(true);
 			stepper_motor.ramp_speed(0, rpm_req, dir);
 			run_timer.start();
@@ -272,6 +276,7 @@ int main()
 
 				if (stepper_motor.current_speed != rpm_req)
 				{
+					pc.printf("RPM requested: %d\n", rpm_req);
 					stepper_motor.ramp_speed(stepper_motor.current_speed, rpm_req, dir);			
 				}
 				if (change_image)
@@ -280,6 +285,8 @@ int main()
 					change_image = false;
 				}
 			}
+
+			pc.printf("RUN STOP!\n");
 
 			// turn off leds
 			for (int i=0; i<4; i++)
