@@ -168,3 +168,41 @@ FILE *SDFileSystem::getBmpFileList(const char * path)//, FILE *bmpFile)
     FILE *bmpFile = this->m_bmpFiles;
     return bmpFile;
 }
+
+
+//function to give the filename for the give index
+std::string SDFileSystem::getSelectedFilename(const char * srchFile, int index)
+{
+    //open the given file
+    this->m_bmpFiles = fopen(srchFile, "r");
+
+    //convert the index to a string
+    std::string i = std::to_string(index);
+
+    //loop through the file line by line
+    std::string line = "";
+    while (!feof(this->m_bmpFiles)) {
+        int c = fgetc(this->m_bmpFiles);
+        //if end of line inspect the line
+        if(c == '\n')
+        {
+            //if the index is in the line, return this filename
+            if (line.find(i) != std::string::npos) {
+                std::string filename = line.substr(line.find("\t")+1);
+                return filename;
+            }
+            line = "";
+        }
+        //if not the end of line at the char to the line
+        else
+        {
+            line += c;
+        }
+    }
+
+    //if the line has not been found, return the default image
+
+    return "default.bmp";
+
+    
+}

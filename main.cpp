@@ -116,8 +116,18 @@ void interperetCommand() {
                     btSendOngoing = false;
 
                     break; 
-        case selectImageCode : pc.printf("Select image from file list\n\r");
-                    break; 
+        case selectImageCode : 
+                    { 
+                        pc.printf("Select image from file list\n\r");
+                        bt.m_bt->attach(0); //detach the interrupt
+                        char selected_file = bt.readCharacter();
+                        int file_req = int(selected_file);
+                        std::string filename = sd->getSelectedFilename("/sd/bmpFiles.txt", file_req);
+                        std::string fullPath = "/sd/LoadedImages/" + filename;
+                        //sd->changeImage(image, fullPath);
+                        bt.m_bt->attach(do_something); //reattach the interrupt
+                        break;
+                    }
         case sendImageCode :{ pc.printf("Sending new image\n\r");
                     bt.m_bt->attach(0); //detach the interrupt
                     string filename = bt.receiveFilename(".bmp");

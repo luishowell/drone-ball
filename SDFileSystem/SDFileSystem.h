@@ -81,6 +81,16 @@ class SDFileSystem
         FILE *getBmpFileList(const char * path);
 
 
+        /**
+         * @brief getSelectedFilename Function that gives the filename of the selected file 
+         *
+         *
+         * @param srchFile Filename of the file to be searched
+         * @param index The index to be selected 
+         */
+        std::string getSelectedFilename(const char * srchFile, int index);
+
+
     private:
 
         //classes for the file system and block device
