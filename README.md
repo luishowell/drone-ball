@@ -1,4 +1,6 @@
-# Drone Ball
-Its a ~~drone but in a~~ ball.
+# Persistence-of-Vision Spherical LED Display
 
-https://www.youtube.com/watch?v=GxOkeLQohC0
+![final construction](https://github.com/luishowell/drone-ball/blob/master/images/construction_img_small.png?raw=true)
+
+![while running](https://github.com/luishowell/drone-ball/blob/master/images/running_img_small.png?raw=true)
+
