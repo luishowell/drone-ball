@@ -12,15 +12,14 @@ The aim of this project was to design a 3D persistence-of-vision display around 
 
 The electronic design of the sphere was essential to effectively create the display. The overall electronic system diagram is shown below and contains:    
 
-* led Strips - Lengths of RGB LEDs to light the display.
+* LED Strips - Lengths of RGB LEDs to light the display.
 * Microcontroller - Control the operation of the display.
 * Stepper Motor and Driver - Used to spin the LED strips.
 * Power Supply - Provide power to the display without outside connection.
 * SD Card - Storage of images to be displayed.
 * Bluetooth Module - Facilitate wireless control of the display.
 
-![system diagram](https://github.com/luishowell/drone-ball/blob/master/images/system_diagram_small.png?raw=true)
-
+![system diagram](https://github.com/luishowell/drone-ball/blob/master/images/system_diagram_small.PNG?raw=true)
 
 ## Android App
 
